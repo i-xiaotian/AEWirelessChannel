@@ -6,6 +6,7 @@ import net.minecraftforge.fml.common.Mod;
         dependencies = "required-after:forge@[14.21.0.2371,);" +
                 "after:appliedenergistics2@[rv6-stable-7,);",
         acceptedMinecraftVersions = "[1.12, 1.13)")
+@SuppressWarnings("unused")
 public class AEWirelessCable {
 
     public static final String modID = "aewirelesscable";
