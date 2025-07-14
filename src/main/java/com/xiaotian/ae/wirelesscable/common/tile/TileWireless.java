@@ -14,10 +14,12 @@ import com.xiaotian.ae.wirelesscable.common.entity.ConnectionKey;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.EnumSet;
 
 public abstract class TileWireless extends TileEntity implements IGridProxyable, IActionHost {
 
@@ -86,6 +88,7 @@ public abstract class TileWireless extends TileEntity implements IGridProxyable,
     @Override
     public void validate() {
         super.validate();
+        proxy.setValidSides(EnumSet.of(EnumFacing.DOWN));
         proxy.validate();
         proxy.onReady();
     }

@@ -1,8 +1,8 @@
 package com.xiaotian.ae.wirelesscable.common.block;
 
+import appeng.me.helpers.AENetworkProxy;
 import com.xiaotian.ae.wirelesscable.AEWirelessCable;
 import com.xiaotian.ae.wirelesscable.common.proxy.CommonProxy;
-import com.xiaotian.ae.wirelesscable.common.registry.BlockRegistry;
 import com.xiaotian.ae.wirelesscable.common.tile.TileOutputBusWireless;
 import net.minecraft.block.Block;
 import net.minecraft.block.ITileEntityProvider;
@@ -22,8 +22,9 @@ import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.EnumSet;
 
-public class WirelessOutputBus extends Block implements ITileEntityProvider, IHasTileEntity {
+public class WirelessOutputBus extends BlockWithFacing implements ITileEntityProvider, IHasTileEntity {
 
     private static final String BLOCK_ID = "block_wireless_output_bus";
     private static final String TILE_ID = BLOCK_ID.replace("block_", "tile_");
@@ -59,15 +60,4 @@ public class WirelessOutputBus extends Block implements ITileEntityProvider, IHa
         return true;
     }
 
-    @Override
-    public void onBlockPlacedBy(@Nonnull World world, @Nonnull BlockPos pos, @Nonnull IBlockState state, @Nonnull EntityLivingBase placer, @Nonnull ItemStack stack) {
-        super.onBlockPlacedBy(world, pos, state, placer, stack);
-        if (!world.isRemote) {
-//            TileEntity te = world.getTileEntity(pos);
-//            if (te instanceof TileOutputBusWireless && placer instanceof EntityPlayer) {
-//                TileOutputBusWireless tileWirelessOutputBus = (TileOutputBusWireless) te;
-//                tileWirelessOutputBus.getActionableNode();
-//            }
-        }
-    }
 }
