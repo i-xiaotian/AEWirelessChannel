@@ -10,6 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public abstract class WirelessTile extends TileEntity implements IGridProxyable {
 
@@ -22,6 +23,12 @@ public abstract class WirelessTile extends TileEntity implements IGridProxyable 
     @Override
     public AENetworkProxy getProxy() {
         return this.proxy;
+    }
+
+    @Nullable
+    @Override
+    public IGridNode getGridNode(@Nonnull final AEPartLocation aePartLocation) {
+        return this.getProxy().getNode();
     }
 
     @Nonnull
