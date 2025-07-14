@@ -1,0 +1,14 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "aewirelesscable:block_wireless_output_bus"
+  },
+  "variants": {
+    "normal": [{
+      "model": "aewirelesscable:block_wireless_output_bus"
+    }],
+    "inventory": [{
+      "model": "aewirelesscable:block_wireless_output_bus"
+    }]
+  }
+}

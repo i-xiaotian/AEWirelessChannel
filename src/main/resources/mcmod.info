@@ -1,7 +1,7 @@
 [
     {
         "modid": "aewirelesscable",
-        "name": "AE2: WirelessCable",
+        "name": "AE2 Wireless Cable",
         "description": "A mod for wireless AE channel transmission",
         "version": "${version}",
         "mcversion": "${mcversion}",

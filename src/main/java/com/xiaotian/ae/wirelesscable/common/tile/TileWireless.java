@@ -1,24 +1,35 @@
 package com.xiaotian.ae.wirelesscable.common.tile;
 
+import appeng.api.networking.GridFlags;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.security.IActionSource;
 import appeng.api.util.AECableType;
 import appeng.api.util.AEPartLocation;
 import appeng.api.util.DimensionalCoord;
 import appeng.me.helpers.AENetworkProxy;
 import appeng.me.helpers.IGridProxyable;
+import appeng.me.helpers.MachineSource;
 import com.xiaotian.ae.wirelesscable.common.entity.ConnectionKey;
+import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public abstract class WirelessTile extends TileEntity implements IGridProxyable, IActionHost {
+public abstract class TileWireless extends TileEntity implements IGridProxyable, IActionHost {
 
-    private final AENetworkProxy proxy = new AENetworkProxy(this, "aeProxy", getVisualItemStack(), true);
+    protected final AENetworkProxy proxy = new AENetworkProxy(this, "aeProxy", getVisualItemStack(), true);
+    protected final IActionSource source;
 
-    protected ConnectionKey connectionKey;
+    protected String connectionKey;
+
+    public TileWireless() {
+        this.proxy.setFlags(GridFlags.REQUIRE_CHANNEL);
+        this.source = new MachineSource(this);
+    }
 
     public abstract ItemStack getVisualItemStack();
 
@@ -30,13 +41,13 @@ public abstract class WirelessTile extends TileEntity implements IGridProxyable,
     @Nullable
     @Override
     public IGridNode getGridNode(@Nonnull final AEPartLocation aePartLocation) {
-        return this.getProxy().getNode();
+        return this.proxy.getNode();
     }
 
     @Nonnull
     @Override
     public AECableType getCableConnectionType(@Nonnull final AEPartLocation aePartLocation) {
-        return AECableType.DENSE_SMART;
+        return AECableType.SMART;
     }
 
     @Override
@@ -46,7 +57,7 @@ public abstract class WirelessTile extends TileEntity implements IGridProxyable,
 
     @Override
     public DimensionalCoord getLocation() {
-        return null;
+        return new DimensionalCoord(this);
     }
 
     @Override
@@ -57,7 +68,32 @@ public abstract class WirelessTile extends TileEntity implements IGridProxyable,
     @Nonnull
     @Override
     public IGridNode getActionableNode() {
-        return this.getProxy().getNode();
+        return this.proxy.getNode();
     }
+
+    @Override
+    public void onChunkUnload() {
+        super.onChunkUnload();
+        proxy.onChunkUnload();
+    }
+
+    @Override
+    public void invalidate() {
+        super.invalidate();
+        proxy.invalidate();
+    }
+
+    @Override
+    public void validate() {
+        super.validate();
+        proxy.validate();
+        proxy.onReady();
+    }
+
+    @Override
+    protected void setWorldCreate(@Nonnull final World worldIn) {
+        setWorld(worldIn);
+    }
+
 
 }
