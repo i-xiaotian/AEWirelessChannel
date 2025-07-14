@@ -10,7 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 public class AEWirelessCable {
 
     public static final String modID = "aewirelesscable";
-    public static final String modName = "AE: Wireless Cable";
+    public static final String modName = "AE-Wireless-Cable";
     public static final String version = Tags.VERSION;
 
 
