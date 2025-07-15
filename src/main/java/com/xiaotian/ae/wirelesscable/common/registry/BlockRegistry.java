@@ -2,7 +2,6 @@ package com.xiaotian.ae.wirelesscable.common.registry;
 
 import com.xiaotian.ae.wirelesscable.AEWirelessCable;
 import com.xiaotian.ae.wirelesscable.common.block.IHasTileEntity;
-import com.xiaotian.ae.wirelesscable.common.tile.TileOutputBusWireless;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
@@ -20,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static com.xiaotian.ae.wirelesscable.AEWirelessCable.log;
+
 @Mod.EventBusSubscriber(modid = AEWirelessCable.MOD_ID)
 public class BlockRegistry {
 
@@ -34,7 +35,7 @@ public class BlockRegistry {
 
     @SubscribeEvent
     public static void registerBlock(RegistryEvent.Register<Block> event) {
-        AEWirelessCable.log.info("where is my block?: {}", BLOCK_LIST.size());
+        log.info("block size: {}", BLOCK_LIST.size());
         event.getRegistry().registerAll(BLOCK_LIST.toArray(new Block[0]));
         for (Block block : BLOCK_LIST) {
             if (!(block instanceof IHasTileEntity)) return;

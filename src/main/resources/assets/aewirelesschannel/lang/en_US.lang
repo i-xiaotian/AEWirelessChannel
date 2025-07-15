@@ -1,0 +1,7 @@
+itemGroup.aewirelesschannel=AE Wireless Cable
+
+tile.aewirelesschannel.block_wireless_output_bus.name=ME Channel Output Bus
+tile.aewirelesschannel.block_wireless_input_bus.name=ME Channel Input Bus
+
+top.aewirelesschannel.device_online=§bDevice Online
+top.aewirelesschannel.device_offline=§fDevice Offline

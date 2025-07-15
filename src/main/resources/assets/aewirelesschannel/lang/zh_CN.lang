@@ -1,0 +1,7 @@
+itemGroup.aewirelesschannel=AE 无线线缆
+
+tile.aewirelesschannel.block_wireless_output_bus.name=ME无线频道输出总线
+tile.aewirelesschannel.block_wireless_input_bus.name=ME无线频道输入总线
+
+top.aewirelesschannel.device_online=§b设备开启
+top.aewirelesschannel.device_offline=§f设备关闭

@@ -1,6 +1,5 @@
 package com.xiaotian.ae.wirelesscable.common.tile;
 
-import appeng.api.networking.GridFlags;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.networking.security.IActionSource;
@@ -10,9 +9,8 @@ import appeng.api.util.DimensionalCoord;
 import appeng.me.helpers.AENetworkProxy;
 import appeng.me.helpers.IGridProxyable;
 import appeng.me.helpers.MachineSource;
-import com.xiaotian.ae.wirelesscable.common.entity.ConnectionKey;
-import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
@@ -21,16 +19,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.EnumSet;
 
-public abstract class TileWireless extends TileEntity implements IGridProxyable, IActionHost {
+public abstract class TileWirelessBus extends TileEntity implements IGridProxyable, IActionHost {
 
     protected final AENetworkProxy proxy = new AENetworkProxy(this, "aeProxy", getVisualItemStack(), true);
-    protected final IActionSource source;
+    protected final IActionSource actionSource;
 
-    protected String connectionKey;
-
-    public TileWireless() {
-        this.proxy.setFlags(GridFlags.REQUIRE_CHANNEL);
-        this.source = new MachineSource(this);
+    public TileWirelessBus() {
+        this.actionSource = new MachineSource(this);
     }
 
     public abstract ItemStack getVisualItemStack();
@@ -88,7 +83,6 @@ public abstract class TileWireless extends TileEntity implements IGridProxyable,
     @Override
     public void validate() {
         super.validate();
-        proxy.setValidSides(EnumSet.of(EnumFacing.DOWN));
         proxy.validate();
         proxy.onReady();
     }
@@ -98,5 +92,33 @@ public abstract class TileWireless extends TileEntity implements IGridProxyable,
         setWorld(worldIn);
     }
 
+    @Override
+    @Nonnull
+    public NBTTagCompound writeToNBT(@Nonnull final NBTTagCompound compound) {
+        super.writeToNBT(compound);
+        proxy.writeToNBT(compound);
+        NBTTagCompound sidesTag = new NBTTagCompound();
+        final EnumSet<EnumFacing> connectableSides = proxy.getConnectableSides();
+        for (EnumFacing side : connectableSides) {
+            sidesTag.setBoolean(String.valueOf(side.ordinal()), true);
+        }
+        compound.setTag("validSides", sidesTag);
+        return compound;
+    }
 
+    @Override
+    public void readFromNBT(@Nonnull final NBTTagCompound compound) {
+        super.readFromNBT(compound);
+        proxy.readFromNBT(compound);
+        if (!compound.hasKey("validSides")) return;
+
+        final NBTTagCompound sidesTag = compound.getCompoundTag("validSides");
+        EnumSet<EnumFacing> newSides = EnumSet.noneOf(EnumFacing.class);
+        final EnumFacing[] values = EnumFacing.values();
+        for (EnumFacing facing : values) {
+            if (!sidesTag.hasKey(String.valueOf(facing.ordinal()))) continue;
+            newSides.add(facing);
+        }
+        proxy.setValidSides(newSides);
+    }
 }

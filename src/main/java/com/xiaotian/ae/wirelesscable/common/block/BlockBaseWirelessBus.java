@@ -1,8 +1,8 @@
 package com.xiaotian.ae.wirelesscable.common.block;
 
 import appeng.me.helpers.AENetworkProxy;
-import com.xiaotian.ae.wirelesscable.common.tile.TileOutputBusWireless;
-import net.minecraft.block.Block;
+import com.xiaotian.ae.wirelesscable.common.tile.TileWirelessBus;
+import com.xiaotian.ae.wirelesscable.common.tile.TileWirelessOutputBus;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockStateContainer;
@@ -18,26 +18,37 @@ import net.minecraft.world.World;
 import javax.annotation.Nonnull;
 import java.util.EnumSet;
 
-public abstract class BlockWithFacing extends Block {
+@SuppressWarnings("deprecation")
+public abstract class BlockBaseWirelessBus extends BlockBusBase {
 
     protected static final PropertyDirection FACING = PropertyDirection.create("facing");
 
-
-    public BlockWithFacing(final Material material) {
+    public BlockBaseWirelessBus(final Material material) {
         super(material);
         this.setDefaultState(this.blockState.getBaseState().withProperty(FACING, EnumFacing.NORTH));
     }
 
     @Override
+    @Nonnull
     protected BlockStateContainer createBlockState() {
         return new BlockStateContainer(this, FACING);
     }
 
     @Override
+    @Nonnull
     public IBlockState getStateFromMeta(int meta) {
         EnumFacing facing = EnumFacing.byIndex(meta);
         return this.getDefaultState().withProperty(FACING, facing);
     }
+
+    @Override
+    @Nonnull
+    public IBlockState getStateForPlacement(@Nonnull final World worldIn, @Nonnull final BlockPos pos, @Nonnull final EnumFacing clickedFace,
+                                            final float hitX, final float hitY, final float hitZ,
+                                            final int meta, @Nonnull final EntityLivingBase placer) {
+        return this.getDefaultState().withProperty(FACING, clickedFace);
+    }
+
 
     @Override
     public int getMetaFromState(IBlockState state) {
@@ -49,22 +60,12 @@ public abstract class BlockWithFacing extends Block {
         super.onBlockPlacedBy(world, pos, state, placer, stack);
         if (!world.isRemote) {
             TileEntity tileEntity = world.getTileEntity(pos);
-            if (tileEntity instanceof TileOutputBusWireless && placer instanceof EntityPlayer) {
-                TileOutputBusWireless outputBusWireless = (TileOutputBusWireless) tileEntity;
-                final AENetworkProxy proxy = outputBusWireless.getProxy();
+            if (tileEntity instanceof final TileWirelessBus tileWirelessBus && placer instanceof EntityPlayer) {
+                final AENetworkProxy proxy = tileWirelessBus.getProxy();
                 proxy.setOwner((EntityPlayer) placer);
                 final EnumFacing opposite = state.getValue(FACING).getOpposite();
                 proxy.setValidSides(EnumSet.of(opposite));
             }
         }
     }
-
-    @Override
-    public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing clickedFace,
-                                            float hitX, float hitY, float hitZ,
-                                            int meta, EntityLivingBase placer) {
-        return this.getDefaultState().withProperty(FACING, clickedFace);
-    }
-
-
 }

@@ -1,9 +1,0 @@
-{
-  "parent": "block/cube_bottom_top",
-  "textures": {
-    "particle": "aewirelesscable:blocks/block_wireless_output_bus",
-    "bottom": "aewirelesscable:blocks/block_wireless_output_bus",
-    "top": "aewirelesscable:blocks/block_wireless_output_bus",
-    "side": "aewirelesscable:blocks/block_wireless_output_bus"
-  }
-}

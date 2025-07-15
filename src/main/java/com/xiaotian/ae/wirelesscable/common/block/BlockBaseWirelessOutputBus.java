@@ -1,56 +1,45 @@
 package com.xiaotian.ae.wirelesscable.common.block;
 
-import appeng.me.helpers.AENetworkProxy;
-import com.xiaotian.ae.wirelesscable.AEWirelessCable;
-import com.xiaotian.ae.wirelesscable.common.proxy.CommonProxy;
-import com.xiaotian.ae.wirelesscable.common.tile.TileOutputBusWireless;
-import net.minecraft.block.Block;
+import com.xiaotian.ae.wirelesscable.common.tile.TileWirelessOutputBus;
 import net.minecraft.block.ITileEntityProvider;
-import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.EnumSet;
 
-public class WirelessOutputBus extends BlockWithFacing implements ITileEntityProvider, IHasTileEntity {
+public class BlockBaseWirelessOutputBus extends BlockBaseWirelessBus implements ITileEntityProvider, IHasTileEntity {
 
-    private static final String BLOCK_ID = "block_wireless_output_bus";
-    private static final String TILE_ID = BLOCK_ID.replace("block_", "tile_");
+    public BlockBaseWirelessOutputBus() {
+        super(Material.GLASS);
+    }
 
     @Override
     public Class<? extends TileEntity> getTileEntityClass() {
-        return TileOutputBusWireless.class;
+        return TileWirelessOutputBus.class;
     }
 
     @Override
     public String getTileEntityId() {
-        return TILE_ID;
+        return getBlockId().replace("block_", "tile_");
     }
 
-    public WirelessOutputBus() {
-        super(Material.GLASS);
-        this.setSoundType(SoundType.GLASS);
-        this.setCreativeTab(CommonProxy.creativeTab);
-        this.setRegistryName(new ResourceLocation(AEWirelessCable.MOD_ID, "block_wireless_output_bus"));
-        this.setTranslationKey(AEWirelessCable.MOD_ID + ".block_wireless_output_bus");
+    @Override
+    public String getBlockId() {
+        return "block_wireless_output_bus";
     }
 
     @Nullable
     @Override
     public TileEntity createNewTileEntity(@Nonnull final World worldIn, final int meta) {
-        return new TileOutputBusWireless();
+        return new TileWirelessOutputBus();
     }
 
     @Override
