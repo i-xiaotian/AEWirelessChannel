@@ -43,10 +43,10 @@ minecraft {
     val args = mutableListOf("-ea:${project.group}")
 
     // Mixin args
-    args.add("-Dfml.coreMods.load=github.kasuminova.mmce.mixin.MMCEEarlyMixinLoader")
-    args.add("-Dmixin.hotSwap=true")
-    args.add("-Dmixin.checks.interfaces=true")
-    args.add("-Dmixin.debug.export=true")
+//    args.add("-Dfml.coreMods.load=github.kasuminova.mmce.mixin.MMCEEarlyMixinLoader")
+//    args.add("-Dmixin.hotSwap=true")
+//    args.add("-Dmixin.checks.interfaces=true")
+//    args.add("-Dmixin.debug.export=true")
     extraRunJvmArguments.addAll(args)
 
     // If needed, add extra tweaker classes like for mixins.
@@ -84,7 +84,7 @@ tasks.compileJava.configure {
 tasks.jar.configure {
     manifest {
         val attributes = manifest.attributes
-        attributes["FMLCorePlugin"] = "github.kasuminova.mmce.mixin.MMCEEarlyMixinLoader"
+//        attributes["FMLCorePlugin"] = "github.kasuminova.mmce.mixin.MMCEEarlyMixinLoader"
         attributes["FMLCorePluginContainsFMLMod"] = true
     }
 }

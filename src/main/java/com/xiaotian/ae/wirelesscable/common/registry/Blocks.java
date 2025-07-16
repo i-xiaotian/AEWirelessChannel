@@ -9,9 +9,9 @@ public class Blocks {
     public static Block WIRELESS_OUTPUT_BUS;
     public static Block WIRELESS_INPUT_BUS;
 
-    public static void init() {
-        WIRELESS_OUTPUT_BUS = BlockRegistry.registerBlock(new BlockBaseWirelessOutputBus());
-        WIRELESS_INPUT_BUS = BlockRegistry.registerBlock(new BlockBaseWirelessInputBus());
+    public static void preInit() {
+        WIRELESS_OUTPUT_BUS = Registry.registerBlock(new BlockBaseWirelessOutputBus());
+        WIRELESS_INPUT_BUS = Registry.registerBlock(new BlockBaseWirelessInputBus());
     }
 
 }

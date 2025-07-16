@@ -1,6 +1,6 @@
 package com.xiaotian.ae.wirelesscable.common.block;
 
-import com.xiaotian.ae.wirelesscable.AEWirelessCable;
+import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import com.xiaotian.ae.wirelesscable.common.proxy.CommonProxy;
 import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
@@ -13,8 +13,8 @@ public abstract class BlockBusBase extends Block implements IBlockBase {
         super(material);
         this.setSoundType(SoundType.GLASS);
         this.setCreativeTab(CommonProxy.creativeTab);
-        this.setRegistryName(new ResourceLocation(AEWirelessCable.MOD_ID, getBlockId()));
-        this.setTranslationKey(AEWirelessCable.MOD_ID + "." + getBlockId());
+        this.setRegistryName(new ResourceLocation(AEWirelessChannel.MOD_ID, getBlockId()));
+        this.setTranslationKey(AEWirelessChannel.MOD_ID + "." + getBlockId());
     }
 
 }

@@ -1,9 +1,9 @@
 package com.xiaotian.ae.wirelesscable.common.config;
 
-import com.xiaotian.ae.wirelesscable.AEWirelessCable;
+import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import net.minecraftforge.common.config.Config;
 
-@Config(modid = AEWirelessCable.MOD_ID, name = "ae_wireless_cable")
+@Config(modid = AEWirelessChannel.MOD_ID, name = "ae_wireless_cable")
 public class AEWirelessCableConfig {
 
     @Config.Comment("Whether to force the bus to load its chunk")

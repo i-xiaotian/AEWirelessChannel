@@ -3,5 +3,10 @@ itemGroup.aewirelesschannel=AE 无线线缆
 tile.aewirelesschannel.block_wireless_output_bus.name=ME无线频道输出总线
 tile.aewirelesschannel.block_wireless_input_bus.name=ME无线频道输入总线
 
-top.aewirelesschannel.device_online=§b设备开启
-top.aewirelesschannel.device_offline=§f设备关闭
+item.aewirelesschannel.machine_projector.name=ME无线频道连接卡
+
+tooltip.machine_projector.output=潜行时右键绑定无线频道输出总线
+tooltip.machine_projector.input=右键将无线频道输出总线绑定至输入总线
+
+top.aewirelesschannel.device_online=设备开启
+top.aewirelesschannel.device_offline=设备关闭

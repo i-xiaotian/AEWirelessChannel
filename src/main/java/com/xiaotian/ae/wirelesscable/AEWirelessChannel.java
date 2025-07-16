@@ -7,12 +7,12 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = AEWirelessCable.MOD_ID, name = AEWirelessCable.MOD_NAME, version = AEWirelessCable.VERSION,
+@Mod(modid = AEWirelessChannel.MOD_ID, name = AEWirelessChannel.MOD_NAME, version = AEWirelessChannel.VERSION,
         dependencies = "required-after:forge@[14.21.0.2371,);" +
                 "after:appliedenergistics2@[rv6-stable-7,);",
         acceptedMinecraftVersions = "[1.12, 1.13)")
 @SuppressWarnings("unused")
-public class AEWirelessCable {
+public class AEWirelessChannel {
 
     public static final String MOD_ID = "aewirelesschannel";
     public static final String MOD_NAME = "AE-Wireless-Channel";

@@ -1,7 +1,12 @@
 itemGroup.aewirelesschannel=AE Wireless Cable
 
-tile.aewirelesschannel.block_wireless_output_bus.name=ME Channel Output Bus
-tile.aewirelesschannel.block_wireless_input_bus.name=ME Channel Input Bus
+tile.aewirelesschannel.block_wireless_output_bus.name=ME channel output bus
+tile.aewirelesschannel.block_wireless_input_bus.name=ME channel input bus
 
-top.aewirelesschannel.device_online=§bDevice Online
-top.aewirelesschannel.device_offline=§fDevice Offline
+item.aewirelesschannel.machine_projector.name=ME wireless channel connection card
+
+tooltip.machine_projector.output=Right-click to bind the wireless channel output bus while sneaking
+tooltip.machine_projector.input=Right-click to bind the wireless channel output bus to input bus
+
+top.aewirelesschannel.device_online=Device online
+top.aewirelesschannel.device_offline=Device offline

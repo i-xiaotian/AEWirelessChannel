@@ -1,7 +1,7 @@
 package com.xiaotian.ae.wirelesscable.common.integration.top;
 
 import appeng.me.helpers.AENetworkProxy;
-import com.xiaotian.ae.wirelesscable.AEWirelessCable;
+import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import com.xiaotian.ae.wirelesscable.common.tile.TileWirelessBus;
 import mcjty.theoneprobe.api.IProbeHitData;
 import mcjty.theoneprobe.api.IProbeInfo;
@@ -20,7 +20,7 @@ public class TopInfoProvider implements IProbeInfoProvider {
 
     @Override
     public String getID() {
-        return AEWirelessCable.MOD_ID + ":top_info_provider";
+        return AEWirelessChannel.MOD_ID + ":top_info_provider";
     }
 
     @Override

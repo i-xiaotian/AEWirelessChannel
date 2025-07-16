@@ -1,6 +1,6 @@
 package com.xiaotian.ae.wirelesscable.common.registry;
 
-import com.xiaotian.ae.wirelesscable.AEWirelessCable;
+import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import com.xiaotian.ae.wirelesscable.common.block.IHasTileEntity;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
@@ -19,12 +19,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.xiaotian.ae.wirelesscable.AEWirelessCable.log;
+import static com.xiaotian.ae.wirelesscable.AEWirelessChannel.log;
 
-@Mod.EventBusSubscriber(modid = AEWirelessCable.MOD_ID)
-public class BlockRegistry {
+@Mod.EventBusSubscriber(modid = AEWirelessChannel.MOD_ID)
+public class Registry {
 
     private static final List<Block> BLOCK_LIST = new ArrayList<>();
+    private static final List<Item> BLOCK_ITEM_LIST = new ArrayList<>();
 
     private static final List<Item> ITEM_LIST = new ArrayList<>();
 
@@ -33,21 +34,25 @@ public class BlockRegistry {
         return block;
     }
 
+    public static <T extends Item> T registerItem(T item) {
+        ITEM_LIST.add(item);
+        return item;
+    }
+
     @SubscribeEvent
-    public static void registerBlock(RegistryEvent.Register<Block> event) {
+    public static void onRegisterBlock(RegistryEvent.Register<Block> event) {
         log.info("block size: {}", BLOCK_LIST.size());
         event.getRegistry().registerAll(BLOCK_LIST.toArray(new Block[0]));
         for (Block block : BLOCK_LIST) {
-            if (!(block instanceof IHasTileEntity)) return;
-            IHasTileEntity hasTileEntity = (IHasTileEntity) block;
+            if (!(block instanceof final IHasTileEntity hasTileEntity)) return;
             final Class<? extends TileEntity> tileEntityClass = hasTileEntity.getTileEntityClass();
             final String tileEntityId = hasTileEntity.getTileEntityId();
-            GameRegistry.registerTileEntity(tileEntityClass, new ResourceLocation(AEWirelessCable.MOD_ID, tileEntityId));
+            GameRegistry.registerTileEntity(tileEntityClass, new ResourceLocation(AEWirelessChannel.MOD_ID, tileEntityId));
         }
     }
 
     @SubscribeEvent
-    public static void registerItem(RegistryEvent.Register<Item> event) {
+    public static void onRegisterItem(RegistryEvent.Register<Item> event) {
         for (Block block : BLOCK_LIST) {
             final ItemBlock itemBlock = new ItemBlock(block);
             final ResourceLocation registryName = block.getRegistryName();
@@ -55,13 +60,16 @@ public class BlockRegistry {
             if (Objects.nonNull(registryName)) itemBlock.setRegistryName(registryName);
             itemBlock.setTranslationKey(translationKey);
             event.getRegistry().register(itemBlock);
-            ITEM_LIST.add(itemBlock);
+            BLOCK_ITEM_LIST.add(itemBlock);
         }
+        event.getRegistry().registerAll(ITEM_LIST.toArray(new Item[0]));
+
     }
 
 
     @SubscribeEvent
-    public static void registerModel(ModelRegistryEvent event) {
+    public static void onRegisterModel(ModelRegistryEvent event) {
+        BLOCK_ITEM_LIST.forEach(item -> ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(Objects.requireNonNull(item.getRegistryName()), "inventory")));
         ITEM_LIST.forEach(item -> ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(Objects.requireNonNull(item.getRegistryName()), "inventory")));
     }
 

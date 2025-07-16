@@ -1,8 +1,9 @@
 package com.xiaotian.ae.wirelesscable.common.proxy;
 
-import com.xiaotian.ae.wirelesscable.AEWirelessCable;
+import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import com.xiaotian.ae.wirelesscable.common.integration.top.TopInfoProvider;
 import com.xiaotian.ae.wirelesscable.common.registry.Blocks;
+import com.xiaotian.ae.wirelesscable.common.registry.Items;
 import com.xiaotian.ae.wirelesscable.common.tab.AEWirelessTab;
 import mcjty.theoneprobe.TheOneProbe;
 import mcjty.theoneprobe.apiimpl.TheOneProbeImp;
@@ -14,8 +15,9 @@ public class CommonProxy {
     public static CreativeTabs creativeTab;
 
     public void preInit() {
-        creativeTab = new AEWirelessTab(AEWirelessCable.MOD_ID);
-        Blocks.init();
+        creativeTab = new AEWirelessTab(AEWirelessChannel.MOD_ID);
+        Blocks.preInit();
+        Items.preInit();
     }
 
     public void init() {

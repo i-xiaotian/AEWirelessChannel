@@ -14,6 +14,7 @@ import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 public class BlockBaseWirelessOutputBus extends BlockBaseWirelessBus implements ITileEntityProvider, IHasTileEntity {
 
@@ -43,10 +44,11 @@ public class BlockBaseWirelessOutputBus extends BlockBaseWirelessBus implements 
     }
 
     @Override
+    @ParametersAreNonnullByDefault
     public boolean onBlockActivated(final World worldIn, @Nonnull final BlockPos pos, @Nonnull final IBlockState state, @Nonnull final EntityPlayer playerIn, final EnumHand hand, final EnumFacing facing, final float hitX, final float hitY, final float hitZ) {
         if (worldIn.isRemote) return true;
         playerIn.sendMessage(new TextComponentString("点了,15"));
-        return true;
+        return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
     }
 
 }
