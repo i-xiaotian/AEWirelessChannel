@@ -3,10 +3,16 @@ itemGroup.aewirelesschannel=AE Wireless Cable
 tile.aewirelesschannel.block_wireless_output_bus.name=ME channel output bus
 tile.aewirelesschannel.block_wireless_input_bus.name=ME channel input bus
 
-item.aewirelesschannel.machine_projector.name=ME wireless channel connection card
+item.aewirelesschannel.item_wireless_key_card.name=ME wireless channel connection card
 
-tooltip.machine_projector.output=Right-click to bind the wireless channel output bus while sneaking
-tooltip.machine_projector.input=Right-click to bind the wireless channel output bus to input bus
+tooltip.tile_wireless_bus.info=Sneak-right-click with a Quartz Wrench to safely dismantle.
+tooltip.item_wireless_key_card.output=Right-click a Wireless Channel Output Bus to bind it to this Connection Card
+tooltip.item_wireless_key_card.input=Right-click a Wireless Channel Input Bus to link it to the bound Output Bus
+tooltip.item_wireless_key_card.not_bound=Unbound
+tooltip.item_wireless_key_card.bound_info=§bThe bound wireless channel output bus x-§e{} §by-§e{} §bz-§e{}
+tooltip.item_wireless_key_card.bound_type_error=The bound block is not a wireless channel output bus!
+
+message.unsupported_device=Unsupported Device
 
 top.aewirelesschannel.device_online=Device online
 top.aewirelesschannel.device_offline=Device offline

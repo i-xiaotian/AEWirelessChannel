@@ -1,10 +1,14 @@
 package com.xiaotian.ae.wirelesscable.common.block;
 
+import com.xiaotian.ae.wirelesscable.common.registry.Items;
 import com.xiaotian.ae.wirelesscable.common.tile.TileWirelessOutputBus;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -16,9 +20,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
-public class BlockBaseWirelessOutputBus extends BlockBaseWirelessBus implements ITileEntityProvider, IHasTileEntity {
+public class BlockWirelessOutputBus extends BlockBaseWirelessBus implements ITileEntityProvider, IHasTileEntity {
 
-    public BlockBaseWirelessOutputBus() {
+    public BlockWirelessOutputBus() {
         super(Material.GLASS);
     }
 
@@ -47,7 +51,16 @@ public class BlockBaseWirelessOutputBus extends BlockBaseWirelessBus implements 
     @ParametersAreNonnullByDefault
     public boolean onBlockActivated(final World worldIn, @Nonnull final BlockPos pos, @Nonnull final IBlockState state, @Nonnull final EntityPlayer playerIn, final EnumHand hand, final EnumFacing facing, final float hitX, final float hitY, final float hitZ) {
         if (worldIn.isRemote) return true;
-        playerIn.sendMessage(new TextComponentString("点了,15"));
+        final ItemStack heldItem = playerIn.getHeldItem(hand);
+        final Item item = heldItem.getItem();
+        if (item == Items.ITEM_WIRELESS_KEY_CARD) {
+            final TileEntity tileEntity = worldIn.getTileEntity(pos);
+            if (!(tileEntity instanceof TileWirelessOutputBus tileWirelessOutputBus)) {
+                playerIn.sendMessage(new TextComponentString(I18n.format("message.unsupported_device")));
+                return true;
+            }
+
+        }
         return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
     }
 

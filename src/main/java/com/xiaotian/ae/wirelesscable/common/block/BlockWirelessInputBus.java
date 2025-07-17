@@ -9,9 +9,9 @@ import net.minecraft.world.World;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class BlockBaseWirelessInputBus extends BlockBaseWirelessBus implements ITileEntityProvider, IHasTileEntity {
+public class BlockWirelessInputBus extends BlockBaseWirelessBus implements ITileEntityProvider, IHasTileEntity {
 
-    public BlockBaseWirelessInputBus() {
+    public BlockWirelessInputBus() {
         super(Material.GLASS);
     }
 
