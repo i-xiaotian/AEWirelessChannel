@@ -1,3 +1,38 @@
 {
-  "parent": "aewirelesschannel:block/block_wireless_output_bus"
+  "parent": "aewirelesschannel:block/block_wireless_output_bus",
+  "display": {
+    "ground": {
+      "translation": [0, 3, 0],
+      "scale": [0.3, 0.3, 0.3]
+    },
+    "gui": {
+      "rotation": [30, 225, 0],
+      "scale": [0.625, 0.625, 0.625],
+      "translation": [0, 0, 0]
+    },
+    "head": {
+      "rotation": [0, 180, 0],
+      "scale": [1, 1, 1]
+    },
+    "fixed": {
+      "rotation": [0, 180, 0],
+      "scale": [0.5, 0.5, 0.5]
+    },
+    "firstperson_righthand": {
+      "scale": [0.4, 0.4, 0.4],
+      "rotation": [0, 180, 0]
+    },
+    "firstperson_lefthand": {
+      "scale": [0.4, 0.4, 0.4],
+      "rotation": [0, 180, 0]
+    },
+    "thirdperson_righthand": {
+      "scale": [0.4, 0.4, 0.4],
+      "rotation": [0, 180, 0]
+    },
+    "thirdperson_lefthand": {
+      "scale": [0.4, 0.4, 0.4],
+      "rotation": [0, 180, 0]
+    }
+  }
 }

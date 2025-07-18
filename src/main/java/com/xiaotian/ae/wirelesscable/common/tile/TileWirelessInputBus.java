@@ -14,6 +14,7 @@ import net.minecraft.util.math.BlockPos;
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
+@SuppressWarnings("DuplicatedCode")
 public class TileWirelessInputBus extends TileWirelessBus implements ITickable {
 
     private final ConnectionInfo currentConnection;
@@ -40,7 +41,6 @@ public class TileWirelessInputBus extends TileWirelessBus implements ITickable {
         if (!needUpdateGridNode) return;
 
         final IGridNode inputBusNode = this.getActionableNode();
-        if (!inputBusNode.isActive()) return;
 
         final int targetX = currentConnection.getTargetX();
         final int targetY = currentConnection.getTargetY();
@@ -78,13 +78,11 @@ public class TileWirelessInputBus extends TileWirelessBus implements ITickable {
         final int targetY = currentConnection.getTargetY();
         final int targetZ = currentConnection.getTargetZ();
         final boolean connect = currentConnection.isConnect();
-        final boolean needUpdateGridNode = currentConnection.isNeedUpdateGridNode();
         nbtTagCompound.setString("connectionKey", connectionKey);
         nbtTagCompound.setInteger("targetX", targetX);
         nbtTagCompound.setInteger("targetY", targetY);
         nbtTagCompound.setInteger("targetZ", targetZ);
         nbtTagCompound.setBoolean("connect", connect);
-        nbtTagCompound.setBoolean("needUpdateGridNode", needUpdateGridNode);
         return nbtTagCompound;
     }
 
@@ -96,13 +94,12 @@ public class TileWirelessInputBus extends TileWirelessBus implements ITickable {
         final int targetY = compound.getInteger("targetY");
         final int targetZ = compound.getInteger("targetZ");
         final boolean connect = compound.getBoolean("connect");
-        final boolean needUpdateGridNode = compound.getBoolean("needUpdateGridNode");
         currentConnection.setConnectionKey(connectionKey);
         currentConnection.setTargetX(targetX);
         currentConnection.setTargetY(targetY);
         currentConnection.setTargetZ(targetZ);
         currentConnection.setConnect(connect);
-        currentConnection.setNeedUpdateGridNode(needUpdateGridNode);
+        currentConnection.setNeedUpdateGridNode(true);
     }
 
     public ConnectionInfo getCurrentConnection() {

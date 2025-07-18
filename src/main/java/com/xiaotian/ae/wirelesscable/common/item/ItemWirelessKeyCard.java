@@ -33,13 +33,13 @@ public class ItemWirelessKeyCard extends ItemBase {
     public void addInformation(final ItemStack stack, @Nullable final World worldIn, final List<String> tooltip, final ITooltipFlag flagIn) {
         super.addInformation(stack, worldIn, tooltip, flagIn);
 
-        tooltip.add(TextFormatting.GRAY + I18n.format("tooltip.item_wireless_key_card.output"));
-        tooltip.add(TextFormatting.GRAY + I18n.format("tooltip.item_wireless_key_card.input"));
+        tooltip.add(TextFormatting.GRAY + I18n.format("tooltip.aewirelesschannel.item_wireless_key_card.output"));
+        tooltip.add(TextFormatting.GRAY + I18n.format("tooltip.aewirelesschannel.item_wireless_key_card.input"));
 
         final NBTTagCompound tagCompound = stack.getTagCompound();
         if (Objects.isNull(tagCompound)) return;
         if (!tagCompound.hasKey("outputBusBound")) {
-            tooltip.add(TextFormatting.RED + I18n.format("tooltip.item_wireless_key_card.not_bound"));
+            tooltip.add(TextFormatting.RED + I18n.format("tooltip.aewirelesschannel.item_wireless_key_card.not_bound"));
             return;
         }
 
@@ -51,9 +51,9 @@ public class ItemWirelessKeyCard extends ItemBase {
         final IBlockState blockState = worldIn.getBlockState(new BlockPos(boundX, boundY, boundZ));
         final Block block = blockState.getBlock();
         if (block != Blocks.WIRELESS_OUTPUT_BUS) {
-            tooltip.add(TextFormatting.RED + I18n.format("tooltip.item_wireless_key_card.bound_type_error"));
+            tooltip.add(TextFormatting.RED + I18n.format("tooltip.aewirelesschannel.item_wireless_key_card.bound_type_error"));
             return;
         }
-        tooltip.add(I18n.format("tooltip.item_wireless_key_card.bound_info", boundX, boundY, boundZ));
+        tooltip.add(I18n.format("tooltip.aewirelesschannel.item_wireless_key_card.bound_info", boundX, boundY, boundZ));
     }
 }

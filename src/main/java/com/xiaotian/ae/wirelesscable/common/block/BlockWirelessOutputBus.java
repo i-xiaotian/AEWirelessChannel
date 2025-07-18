@@ -9,6 +9,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -54,12 +55,19 @@ public class BlockWirelessOutputBus extends BlockBaseWirelessBus implements ITil
         final ItemStack heldItem = playerIn.getHeldItem(hand);
         final Item item = heldItem.getItem();
         if (item == Items.ITEM_WIRELESS_KEY_CARD) {
-            final TileEntity tileEntity = worldIn.getTileEntity(pos);
-            if (!(tileEntity instanceof TileWirelessOutputBus tileWirelessOutputBus)) {
-                playerIn.sendMessage(new TextComponentString(I18n.format("message.unsupported_device")));
-                return true;
-            }
+            final int x = pos.getX();
+            final int y = pos.getY();
+            final int z = pos.getZ();
+            final NBTTagCompound outputBusBound = new NBTTagCompound();
+            final NBTTagCompound outputBusPosNbt = new NBTTagCompound();
+            outputBusPosNbt.setInteger("boundX", x);
+            outputBusPosNbt.setInteger("boundY", y);
+            outputBusPosNbt.setInteger("boundZ", z);
+            outputBusBound.setTag("outputBusBound", outputBusPosNbt);
+            heldItem.setTagCompound(outputBusBound);
 
+            playerIn.sendMessage(new TextComponentString(I18n.format("message.aewirelesschannel.bound_out_put_bus")));
+            return true;
         }
         return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
     }

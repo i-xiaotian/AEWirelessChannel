@@ -1,18 +1,22 @@
-itemGroup.aewirelesschannel=AE 无线线缆
+itemGroup.aewirelesschannel=AE 无线频道
 
 tile.aewirelesschannel.block_wireless_output_bus.name=ME无线频道输出总线
 tile.aewirelesschannel.block_wireless_input_bus.name=ME无线频道输入总线
 
 item.aewirelesschannel.item_wireless_key_card.name=ME无线频道连接卡
 
-tooltip.tile_wireless_bus.info=使用石英扳手Shift右键可以安全拆除
-tooltip.item_wireless_key_card.output=右键无线频道输出总线绑定到该连接卡
-tooltip.item_wireless_key_card.input=右键无线频道输入总线会将绑定的输出总线连接至输入总线
-tooltip.item_wireless_key_card.not_bound=未绑定
-tooltip.item_wireless_key_card.bound_info=§b已绑定的无线频道输出总线 §bx-§e{} §by-§e{} §bz-§e{}
-tooltip.item_wireless_key_card.bound_type_error=绑定的方块不是无线频道输出总线!
+tooltip.aewirelesschannel.tile_wireless_bus.info=使用石英扳手Shift右键可以安全拆除
+tooltip.aewirelesschannel.item_wireless_key_card.output=右键无线频道输出总线绑定到该连接卡
+tooltip.aewirelesschannel.item_wireless_key_card.input=右键无线频道输入总线会将绑定的输出总线连接至输入总线
+tooltip.aewirelesschannel.item_wireless_key_card.not_bound=未绑定
+tooltip.aewirelesschannel.item_wireless_key_card.bound_info=§b已绑定的无线频道输出总线 x:§e%d §by:§e%d §bz:§e%d
+tooltip.aewirelesschannel.item_wireless_key_card.bound_type_error=绑定的方块不是无线频道输出总线!
 
-message.unsupported_device=不支持的设备
+message.aewirelesschannel.bound_out_put_bus=已将连接卡绑定至该输出总线
+message.aewirelesschannel.bound_in_put_bus=已将绑定的无线频道输出总线连接至该输入总线
+message.aewirelesschannel.not_bound=请先将无线频道输出总线绑定至连接卡
+message.aewirelesschannel.bount_type_error=绑定的坐标不是ME无线频道输出总线
+message.aewirelesschannel.bount_type_error_input=不支持该设备
 
 top.aewirelesschannel.device_online=设备开启
 top.aewirelesschannel.device_offline=设备关闭

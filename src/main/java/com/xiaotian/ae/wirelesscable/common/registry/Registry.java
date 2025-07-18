@@ -1,7 +1,9 @@
 package com.xiaotian.ae.wirelesscable.common.registry;
 
 import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
+import com.xiaotian.ae.wirelesscable.common.block.BlockBusBase;
 import com.xiaotian.ae.wirelesscable.common.block.IHasTileEntity;
+import com.xiaotian.ae.wirelesscable.common.item.ItemBlockWithSpecialModel;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
@@ -54,22 +56,28 @@ public class Registry {
     @SubscribeEvent
     public static void onRegisterItem(RegistryEvent.Register<Item> event) {
         for (Block block : BLOCK_LIST) {
-            final ItemBlock itemBlock = new ItemBlock(block);
-            final ResourceLocation registryName = block.getRegistryName();
-            final String translationKey = block.getTranslationKey();
-            if (Objects.nonNull(registryName)) itemBlock.setRegistryName(registryName);
-            itemBlock.setTranslationKey(translationKey);
+            ItemBlock itemBlock;
+            if (block instanceof BlockBusBase blockBusBase) {
+                itemBlock = new ItemBlockWithSpecialModel(blockBusBase, blockBusBase.getBlockId());
+            } else {
+                itemBlock = new ItemBlock(block);
+                final ResourceLocation registryName = block.getRegistryName();
+                final String translationKey = block.getTranslationKey();
+                if (Objects.nonNull(registryName)) itemBlock.setRegistryName(registryName);
+                itemBlock.setTranslationKey(translationKey);
+            }
             event.getRegistry().register(itemBlock);
             BLOCK_ITEM_LIST.add(itemBlock);
         }
         event.getRegistry().registerAll(ITEM_LIST.toArray(new Item[0]));
-
     }
 
 
     @SubscribeEvent
     public static void onRegisterModel(ModelRegistryEvent event) {
-        BLOCK_ITEM_LIST.forEach(item -> ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(Objects.requireNonNull(item.getRegistryName()), "inventory")));
+        BLOCK_ITEM_LIST.forEach(item -> {
+            ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(Objects.requireNonNull(item.getRegistryName()), "inventory"));
+        });
         ITEM_LIST.forEach(item -> ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(Objects.requireNonNull(item.getRegistryName()), "inventory")));
     }
 

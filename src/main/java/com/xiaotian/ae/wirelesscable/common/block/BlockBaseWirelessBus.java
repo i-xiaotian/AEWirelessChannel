@@ -70,7 +70,6 @@ public abstract class BlockBaseWirelessBus extends BlockBusBase {
                 final EnumFacing opposite = state.getValue(FACING).getOpposite();
                 proxy.setValidSides(EnumSet.of(opposite));
             }
-//            this.onPlaced(world, pos, state, placer, stack);
         }
     }
 
