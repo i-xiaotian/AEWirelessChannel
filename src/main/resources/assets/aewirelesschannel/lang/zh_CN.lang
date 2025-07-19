@@ -1,7 +1,9 @@
 itemGroup.aewirelesschannel=AE 无线频道
 
 tile.aewirelesschannel.block_wireless_output_bus.name=ME无线频道输出总线
+tile.aewirelesschannel.block_dense_wireless_output_bus.name=ME致密无线频道输出总线
 tile.aewirelesschannel.block_wireless_input_bus.name=ME无线频道输入总线
+tile.aewirelesschannel.block_dense_wireless_input_bus.name=ME致密无线频道输入总线
 
 item.aewirelesschannel.item_wireless_key_card.name=ME无线频道连接卡
 
@@ -15,8 +17,8 @@ tooltip.aewirelesschannel.item_wireless_key_card.bound_type_error=绑定的方�
 message.aewirelesschannel.bound_out_put_bus=已将连接卡绑定至该输出总线
 message.aewirelesschannel.bound_in_put_bus=已将绑定的无线频道输出总线连接至该输入总线
 message.aewirelesschannel.not_bound=请先将无线频道输出总线绑定至连接卡
-message.aewirelesschannel.bount_type_error=绑定的坐标不是ME无线频道输出总线
-message.aewirelesschannel.bount_type_error_input=不支持该设备
+message.aewirelesschannel.bound_type_error=绑定的坐标不是ME无线频道输出总线
+message.aewirelesschannel.bound_type_error_input=不支持该设备
 
 top.aewirelesschannel.device_online=设备开启
 top.aewirelesschannel.device_offline=设备关闭

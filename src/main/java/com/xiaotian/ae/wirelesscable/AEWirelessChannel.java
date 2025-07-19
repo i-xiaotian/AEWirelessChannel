@@ -1,6 +1,6 @@
 package com.xiaotian.ae.wirelesscable;
 
-import com.xiaotian.ae.wirelesscable.common.proxy.CommonProxy;
+import com.xiaotian.ae.wirelesscable.proxy.CommonProxy;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -17,8 +17,8 @@ public class AEWirelessChannel {
     public static final String MOD_ID = "aewirelesschannel";
     public static final String MOD_NAME = "AE-Wireless-Channel";
     public static final String VERSION = Tags.VERSION;
-    private static final String COMMON_PROXY = "com.xiaotian.ae.wirelesscable.common.proxy.CommonProxy";
-    private static final String CLIENT_PROXY = "com.xiaotian.ae.wirelesscable.common.proxy.ClientProxy";
+    private static final String COMMON_PROXY = "com.xiaotian.ae.wirelesscable.proxy.CommonProxy";
+    private static final String CLIENT_PROXY = "com.xiaotian.ae.wirelesscable.proxy.ClientProxy";
 
     public static Logger log;
 

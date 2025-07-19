@@ -1,5 +1,5 @@
 {
-  "parent": "aewirelesschannel:block/block_wireless_output_bus_off",
+  "parent": "aewirelesschannel:block/block_dense_wireless_output_bus_off",
   "display": {
     "ground": {
       "translation": [0, 3, 0],

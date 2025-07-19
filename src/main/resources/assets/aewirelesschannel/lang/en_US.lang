@@ -1,7 +1,9 @@
 itemGroup.aewirelesschannel=AE Wireless Channel
 
 tile.aewirelesschannel.block_wireless_output_bus.name=ME channel output bus
+tile.aewirelesschannel.block_dense_wireless_output_bus.name=ME dense channel output bus
 tile.aewirelesschannel.block_wireless_input_bus.name=ME channel input bus
+tile.aewirelesschannel.block_dense_wireless_input_bus.name=ME dense channel input bus
 
 item.aewirelesschannel.item_wireless_key_card.name=ME wireless channel connection card
 
@@ -15,8 +17,8 @@ tooltip.aewirelesschannel.item_wireless_key_card.bound_type_error=The bound bloc
 message.aewirelesschannel.bound_out_put_bus=The connection card is bound to the output bus
 message.aewirelesschannel.bound_in_put_bus=A bound wireless channel output bus is connected to the input bus
 message.aewirelesschannel.not_bound=Please bind the wireless channel output bus to the connection card first
-message.aewirelesschannel.bount_type_error=The bound block pos are not ME wireless channel output bus
-message.aewirelesschannel.bount_type_error_input=The device is not supported
+message.aewirelesschannel.bound_type_error=The bound block pos are not ME wireless channel output bus
+message.aewirelesschannel.bound_type_error_input=The device is not supported
 
 top.aewirelesschannel.device_online=Device online
 top.aewirelesschannel.device_offline=Device offline
