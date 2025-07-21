@@ -1,13 +1,12 @@
 package com.xiaotian.ae.wirelesscable.tab;
 
+import com.xiaotian.ae.wirelesscable.registry.Blocks;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.util.Objects;
+import javax.annotation.Nonnull;
 
 public class AEWirelessTab extends CreativeTabs {
 
@@ -16,10 +15,9 @@ public class AEWirelessTab extends CreativeTabs {
     }
 
     @Override
-    @SuppressWarnings("all")
+    @SideOnly(Side.CLIENT)
+    @Nonnull
     public ItemStack createIcon() {
-        Item value = ForgeRegistries.ITEMS.getValue(new ResourceLocation("appliedenergistics2", "network_tool"));
-        if (Objects.isNull(value)) return new ItemStack(Blocks.ANVIL);
-        return new ItemStack(value);
+        return new ItemStack(Blocks.DENSE_WIRELESS_OUTPUT_BUS);
     }
 }

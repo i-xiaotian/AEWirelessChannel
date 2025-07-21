@@ -1,7 +1,7 @@
 package com.xiaotian.ae.wirelesscable.client.model;
 
 import com.xiaotian.ae.wirelesscable.block.IBloomTexture;
-import com.xiaotian.ae.wirelesscable.client.RenderUtils;
+import com.xiaotian.ae.wirelesscable.util.RenderUtils;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -18,6 +18,8 @@ import net.minecraftforge.client.model.pipeline.VertexLighterFlat;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
+
+import static com.xiaotian.ae.wirelesscable.AEWirelessChannel.log;
 
 @MethodsReturnNonnullByDefault
 @SuppressWarnings("deprecation")
@@ -58,9 +60,9 @@ public class BloomLightModel implements IBakedModel {
 
 
     private BakedQuad makeFullBrightQuad(BakedQuad quad) {
+        if (RenderUtils.isLightMapDisabled()) return quad;
 
         VertexFormat newFormat = RenderUtils.getFormatWithLightMap(quad.getFormat());
-
         UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(newFormat);
 
         builder.setQuadTint(quad.getTintIndex());
@@ -68,13 +70,13 @@ public class BloomLightModel implements IBakedModel {
         builder.setTexture(quad.getSprite());
         builder.setApplyDiffuseLighting(false);
 
-        final VertexLighterFlat trans = getVertexLighterFlat(builder);
+        final VertexLighterFlat trans = this.getVertexLighterFlat(builder);
         quad.pipe(trans);
 
         return builder.build();
     }
 
-    private static VertexLighterFlat getVertexLighterFlat(final UnpackedBakedQuad.Builder builder) {
+    private VertexLighterFlat getVertexLighterFlat(final UnpackedBakedQuad.Builder builder) {
         VertexLighterFlat trans = new VertexLighterFlat(Minecraft.getMinecraft().getBlockColors()) {
             @Override
             @ParametersAreNonnullByDefault

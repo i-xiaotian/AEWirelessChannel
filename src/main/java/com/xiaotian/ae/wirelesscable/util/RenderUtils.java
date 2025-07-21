@@ -1,18 +1,19 @@
-package com.xiaotian.ae.wirelesscable.client;
+package com.xiaotian.ae.wirelesscable.util;
 
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraftforge.common.ForgeModContainer;
 import net.minecraftforge.fml.client.FMLClientHandler;
 
-public class RenderUtils {
+public final class RenderUtils {
+
+    private RenderUtils() {
+    }
 
     private static final VertexFormat ITEM_FORMAT_WITH_LIGHT_MAP = new VertexFormat(DefaultVertexFormats.ITEM).addElement(DefaultVertexFormats.TEX_2S);
 
     public static VertexFormat getFormatWithLightMap(final VertexFormat format) {
-        if (FMLClientHandler.instance().hasOptifine() || !ForgeModContainer.forgeLightPipelineEnabled) {
-            return format;
-        }
+        if (isLightMapDisabled()) return format;
 
         if (format == DefaultVertexFormats.BLOCK) {
             return DefaultVertexFormats.BLOCK;
@@ -24,5 +25,9 @@ public class RenderUtils {
             return result;
         }
         return format;
+    }
+
+    public static boolean isLightMapDisabled() {
+        return FMLClientHandler.instance().hasOptifine() || !ForgeModContainer.forgeLightPipelineEnabled;
     }
 }

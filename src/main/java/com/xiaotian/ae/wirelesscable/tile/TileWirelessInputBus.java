@@ -14,9 +14,13 @@ import net.minecraft.util.math.BlockPos;
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
+import static com.xiaotian.ae.wirelesscable.AEWirelessChannel.log;
+
 public class TileWirelessInputBus extends TileWirelessBus implements ITickable {
 
     private final ConnectionInfo currentConnection;
+
+    private byte tickCounter = 0;
 
     public TileWirelessInputBus() {
         super();
@@ -31,7 +35,9 @@ public class TileWirelessInputBus extends TileWirelessBus implements ITickable {
     @Override
     public void update() {
         if (this.world.isRemote) return;
-        if (this.world.getTotalWorldTime() % 20 != 0) return;
+        tickCounter++;
+        if (tickCounter % 5 != 0) return;
+        if (tickCounter >= 120) tickCounter = 0;
         super.update();
 
         final boolean connect = currentConnection.isConnect();
@@ -54,13 +60,14 @@ public class TileWirelessInputBus extends TileWirelessBus implements ITickable {
 
         try {
             AEApi.instance().grid().createGridConnection(outputBusNode, inputBusNode);
-            wirelessOutputBus.addConnectionInfo(currentConnection);
             currentConnection.setInputBusX(pos.getX());
             currentConnection.setInputBusY(pos.getY());
             currentConnection.setInputBusZ(pos.getZ());
             currentConnection.setNeedUpdateGridNode(false);
+            wirelessOutputBus.addConnectionInfo(currentConnection);
         } catch (FailedConnectionException e) {
-            throw new RuntimeException(e);
+            log.error(e.getMessage(), e);
+            currentConnection.setConnect(false);
         }
     }
 
