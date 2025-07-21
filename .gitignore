@@ -31,5 +31,4 @@ bin/
 /.gradle/
 /build/
 /.idea/
-/gradle/
 /run/
