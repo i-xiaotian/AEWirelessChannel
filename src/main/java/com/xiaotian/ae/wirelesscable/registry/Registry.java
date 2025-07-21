@@ -2,7 +2,9 @@ package com.xiaotian.ae.wirelesscable.registry;
 
 import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import com.xiaotian.ae.wirelesscable.block.BlockBaseWirelessBus;
-import com.xiaotian.ae.wirelesscable.block.IHasTileEntity;
+import com.xiaotian.ae.wirelesscable.block.IBlockBase;
+import com.xiaotian.ae.wirelesscable.block.IBloomTexture;
+import com.xiaotian.ae.wirelesscable.block.ITileWithWireless;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
@@ -45,7 +47,8 @@ public class Registry {
         log.info("block size: {}", BLOCK_LIST.size());
         event.getRegistry().registerAll(BLOCK_LIST.toArray(new Block[0]));
         for (Block block : BLOCK_LIST) {
-            if (!(block instanceof final IHasTileEntity hasTileEntity)) return;
+            if (block instanceof IBloomTexture) ModelRegistry.BLOOM_BLOCK_LIST.add(block);
+            if (!(block instanceof final ITileWithWireless hasTileEntity)) return;
             final Class<? extends TileEntity> tileEntityClass = hasTileEntity.getTileEntityClass();
             final String tileEntityId = hasTileEntity.getTileEntityId();
             GameRegistry.registerTileEntity(tileEntityClass, new ResourceLocation(AEWirelessChannel.MOD_ID, tileEntityId));
@@ -55,16 +58,16 @@ public class Registry {
     @SubscribeEvent
     public static void onRegisterItem(RegistryEvent.Register<Item> event) {
         for (Block block : BLOCK_LIST) {
-            if (block instanceof BlockBaseWirelessBus) ModelRegistry.BLOCK_LIST.add(block);
-//            if (block instanceof BlockBaseBus blockBusBase) {
-//                itemBlock = new ItemBlockWithSpecialModel(blockBusBase, blockBusBase.getBlockId());
-//            } else {
-            ItemBlock itemBlock = new ItemBlock(block);
-            final ResourceLocation registryName = block.getRegistryName();
-            final String translationKey = block.getTranslationKey();
-            if (Objects.nonNull(registryName)) itemBlock.setRegistryName(registryName);
-            itemBlock.setTranslationKey(translationKey);
-//            }
+            ItemBlock itemBlock;
+            if (block instanceof IBlockBase blockBase) {
+                itemBlock = blockBase.createItemBlock(block);
+            } else {
+                itemBlock = new ItemBlock(block);
+                final ResourceLocation registryName = block.getRegistryName();
+                final String translationKey = block.getTranslationKey();
+                if (Objects.nonNull(registryName)) itemBlock.setRegistryName(registryName);
+                itemBlock.setTranslationKey(translationKey);
+            }
             event.getRegistry().register(itemBlock);
             BLOCK_ITEM_LIST.add(itemBlock);
         }

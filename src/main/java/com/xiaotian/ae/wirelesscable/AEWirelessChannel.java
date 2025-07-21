@@ -20,6 +20,8 @@ public class AEWirelessChannel {
     private static final String COMMON_PROXY = "com.xiaotian.ae.wirelesscable.proxy.CommonProxy";
     private static final String CLIENT_PROXY = "com.xiaotian.ae.wirelesscable.proxy.ClientProxy";
 
+    public static AEWirelessChannel instance;
+
     public static Logger log;
 
     @SidedProxy(clientSide = CLIENT_PROXY, serverSide = COMMON_PROXY)
@@ -28,6 +30,7 @@ public class AEWirelessChannel {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         log = event.getModLog();
+        instance = this;
         event.getModMetadata().version = VERSION;
         proxy.preInit();
     }

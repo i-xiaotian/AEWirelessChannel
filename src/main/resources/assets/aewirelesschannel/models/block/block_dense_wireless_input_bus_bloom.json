@@ -1,5 +1,6 @@
 {
 	"texture_size": [64, 64],
+	"shade": false,
 	"textures": {
 		"0": "aewirelesschannel:blocks/block_dense_wireless_input_bus",
 		"2": "aewirelesschannel:blocks/bloom/block_dense_wireless_input_bus_bloom",

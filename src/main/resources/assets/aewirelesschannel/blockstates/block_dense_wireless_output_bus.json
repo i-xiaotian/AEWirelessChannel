@@ -1,7 +1,7 @@
 {
   "forge_marker": 1,
   "defaults": {
-    "model": "aewirelesschannel:block_dense_wireless_output_bus_off"
+    "model": "aewirelesschannel:block_dense_wireless_output_bus_bloom"
   },
   "variants": {
     "facing=north,powered=false": {

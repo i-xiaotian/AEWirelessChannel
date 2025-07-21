@@ -1,5 +1,6 @@
 {
 	"texture_size": [64, 64],
+	"shade": false,
 	"textures": {
 		"2": "aewirelesschannel:blocks/bloom/block_wireless_output_bus_bloom",
 		"3": "aewirelesschannel:blocks/block_wireless_output_bus",

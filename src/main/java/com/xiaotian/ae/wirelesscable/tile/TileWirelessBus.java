@@ -7,7 +7,9 @@ import appeng.api.util.AEPartLocation;
 import appeng.api.util.DimensionalCoord;
 import appeng.me.helpers.AENetworkProxy;
 import appeng.me.helpers.IGridProxyable;
+import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import com.xiaotian.ae.wirelesscable.block.BlockBaseWirelessBus;
+import com.xiaotian.ae.wirelesscable.config.AEWirelessCableConfig;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -15,16 +17,20 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeChunkManager;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.EnumSet;
+import java.util.Objects;
 
 public abstract class TileWirelessBus extends TileEntity implements IGridProxyable, IActionHost, ITickable {
 
     private final AENetworkProxy proxy = new AENetworkProxy(this, "aeProxy", getVisualItemStack(), true);
+    private ForgeChunkManager.Ticket ticket;
 
     public TileWirelessBus() {
         super();
@@ -74,12 +80,19 @@ public abstract class TileWirelessBus extends TileEntity implements IGridProxyab
     public void onChunkUnload() {
         super.onChunkUnload();
         proxy.onChunkUnload();
+        if (!world.isRemote && AEWirelessCableConfig.GENERAL_CONFIG.forceChunk) releaseTicket();
+    }
+
+    @Override
+    public void onLoad() {
+        if (!world.isRemote && AEWirelessCableConfig.GENERAL_CONFIG.forceChunk) requestTicket();
     }
 
     @Override
     public void invalidate() {
         super.invalidate();
         proxy.invalidate();
+        if (!world.isRemote && AEWirelessCableConfig.GENERAL_CONFIG.forceChunk) releaseTicket();
     }
 
     @Override
@@ -140,6 +153,33 @@ public abstract class TileWirelessBus extends TileEntity implements IGridProxyab
         if (active != value) {
             final IBlockState newBlockState = currentBlockState.withProperty(BlockBaseWirelessBus.POWERED, active);
             world.setBlockState(pos, newBlockState, 3);
+        }
+    }
+
+    private void requestTicket() {
+        if (Objects.isNull(ticket)) {
+            ticket = ForgeChunkManager.requestTicket(AEWirelessChannel.instance, world, ForgeChunkManager.Type.NORMAL);
+            if (Objects.nonNull(ticket)) {
+
+                int chunkX = pos.getX() >> 4;
+                int chunkZ = pos.getZ() >> 4;
+                int radius = AEWirelessCableConfig.GENERAL_CONFIG.loadRadius;
+
+                for (int dx = -radius; dx <= radius; dx++) {
+                    for (int dz = -radius; dz <= radius; dz++) {
+                        ChunkPos chunkPos = new ChunkPos(chunkX + dx, chunkZ + dz);
+                        ForgeChunkManager.forceChunk(ticket, chunkPos);
+                    }
+                }
+            }
+        }
+    }
+
+    private void releaseTicket() {
+        if (Objects.nonNull(ticket)) {
+            ForgeChunkManager.unforceChunk(ticket, new ChunkPos(pos));
+            ForgeChunkManager.releaseTicket(ticket);
+            ticket = null;
         }
     }
 }

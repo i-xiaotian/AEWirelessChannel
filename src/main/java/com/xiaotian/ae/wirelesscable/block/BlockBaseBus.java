@@ -21,7 +21,7 @@ import java.util.Map;
 
 @SuppressWarnings("deprecation")
 @MethodsReturnNonnullByDefault
-public abstract class BlockBaseBus extends Block implements IBlockBase {
+public abstract class BlockBaseBus extends Block implements IBlockBase, IBloomTexture {
 
     private final Map<EnumFacing, AxisAlignedBB> aabbMap = new HashMap<>();
 
@@ -84,6 +84,11 @@ public abstract class BlockBaseBus extends Block implements IBlockBase {
     @Override
     public BlockRenderLayer getRenderLayer() {
         return BlockRenderLayer.CUTOUT;
+    }
+
+    @Override
+    public String getBloomTextureEndWith() {
+        return "_bloom";
     }
 
     @Nonnull

@@ -7,11 +7,28 @@ tile.aewirelesschannel.block_dense_wireless_input_bus.name=ME致密无线频道�
 
 item.aewirelesschannel.item_wireless_key_card.name=ME无线频道连接卡
 
-tooltip.aewirelesschannel.tile_wireless_bus.info=使用石英扳手Shift右键可以安全拆除
+tooltip.aewirelesschannel.tile_wireless_bus.info.0=§c直接拆除将销毁这个总线
+tooltip.aewirelesschannel.tile_wireless_bus.info.1=使用石英扳手Shift右键可以安全拆除并保留连接信息
+
+tooltip.aewirelesschannel.tile_wireless_bus_input.info.0=使用ME无线频道连接卡右键将它连接至无线频道输出总线
+tooltip.aewirelesschannel.tile_wireless_bus_input.info.1=§r最多传输 §e8 §r个频道
+
+tooltip.aewirelesschannel.tile_dense_wireless_bus_input.info.0=使用ME无线频道连接卡右键将它连接至无线频道输出总线
+tooltip.aewirelesschannel.tile_dense_wireless_bus_input.info.1=§r最多传输 §e32 §r个频道
+
+tooltip.aewirelesschannel.tile_wireless_bus_output.info.0=使用ME无线频道连接卡右键将它绑定至ME无线频道连接卡
+tooltip.aewirelesschannel.tile_wireless_bus_output.info.1=再右键无线频道输入总线将它连接至这个无限频道输出总线
+tooltip.aewirelesschannel.tile_wireless_bus_output.info.2=§r最多传输 §e8 §r个频道
+
+tooltip.aewirelesschannel.tile_dense_wireless_bus_output.info.0=使用ME无线频道连接卡右键将它绑定至ME无线频道连接卡
+tooltip.aewirelesschannel.tile_dense_wireless_bus_output.info.1=再右键无线频道输入总线将它连接至这个无限频道输出总线
+tooltip.aewirelesschannel.tile_dense_wireless_bus_output.info.2=§r最多传输 §e32 §r个频道
+
+
 tooltip.aewirelesschannel.item_wireless_key_card.output=右键无线频道输出总线绑定到该连接卡
 tooltip.aewirelesschannel.item_wireless_key_card.input=右键无线频道输入总线会将绑定的输出总线连接至输入总线
 tooltip.aewirelesschannel.item_wireless_key_card.not_bound=未绑定
-tooltip.aewirelesschannel.item_wireless_key_card.bound_info=§b已绑定的无线频道输出总线 x:§e%d §by:§e%d §bz:§e%d
+tooltip.aewirelesschannel.item_wireless_key_card.bound_info=§b已绑定的无线频道输出总线 x:§e%d §by:§e%d §bz:§e%d §b维度:§e%d
 tooltip.aewirelesschannel.item_wireless_key_card.bound_type_error=绑定的方块不是无线频道输出总线!
 
 message.aewirelesschannel.bound_out_put_bus=已将连接卡绑定至该输出总线
@@ -22,3 +39,8 @@ message.aewirelesschannel.bound_type_error_input=不支持该设备
 
 top.aewirelesschannel.device_online=设备开启
 top.aewirelesschannel.device_offline=设备关闭
+top.aewirelesschannel.wireless_bus_connection_info_header=设备连接信息
+top.aewirelesschannel.wireless_bus_connection_info=连接密钥: §e%s
+top.aewirelesschannel.wireless_bus_connection_info_more_than=%d 个未显示...
+top.aewirelesschannel.wireless_input_bus_connection_info=§b信号源 x:§e%d §by:§e%d §bz:§e%d
+top.aewirelesschannel.wireless_output_bus_connection_info=§b已连接 x:§e%d §by:§e%d §bz:§e%d

@@ -1,6 +1,9 @@
 package com.xiaotian.ae.wirelesscable.block;
 
+import com.xiaotian.ae.wirelesscable.item.ItemBlockDenseWirelessOutputBus;
 import com.xiaotian.ae.wirelesscable.tile.TileDenseWirelessOutputBus;
+import net.minecraft.block.Block;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
@@ -36,5 +39,11 @@ public class BlockDenseWirelessOutputBus extends BlockWirelessOutputBus {
     @Nonnull
     protected AxisAlignedBB getBlockBoundingBox() {
         return BOUNDING_BOX;
+    }
+
+    @Nonnull
+    @Override
+    public ItemBlock createItemBlock(final Block block) {
+        return new ItemBlockDenseWirelessOutputBus(block);
     }
 }

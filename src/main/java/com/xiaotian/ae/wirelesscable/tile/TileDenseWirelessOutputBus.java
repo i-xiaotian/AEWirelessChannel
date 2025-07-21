@@ -20,4 +20,10 @@ public class TileDenseWirelessOutputBus extends TileWirelessOutputBus {
         return new ItemStack(Blocks.DENSE_WIRELESS_OUTPUT_BUS);
     }
 
+    @Nonnull
+    @Override
+    public AECableType getCableConnectionType(@Nonnull final AEPartLocation aePartLocation) {
+        return AECableType.DENSE_SMART;
+    }
+
 }

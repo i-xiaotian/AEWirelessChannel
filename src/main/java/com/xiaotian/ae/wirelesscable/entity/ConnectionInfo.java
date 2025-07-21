@@ -2,6 +2,8 @@ package com.xiaotian.ae.wirelesscable.entity;
 
 import net.minecraft.util.math.BlockPos;
 
+import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.UUID;
 
 public class ConnectionInfo {
@@ -16,11 +18,19 @@ public class ConnectionInfo {
     private boolean isConnect;
     private boolean needUpdateGridNode;
 
-    public ConnectionInfo(final BlockPos pos) {
+    public ConnectionInfo() {
+        this(null);
+    }
+
+    public ConnectionInfo(@Nullable BlockPos pos) {
         this.connectionKey = UUID.randomUUID().toString();
-        this.inputBusX = pos.getX();
-        this.inputBusY = pos.getY();
-        this.inputBusZ = pos.getZ();
+
+        if (Objects.nonNull(pos)) {
+            this.inputBusX = pos.getX();
+            this.inputBusY = pos.getY();
+            this.inputBusZ = pos.getZ();
+        }
+
         this.outputBusX = 0;
         this.outputBusY = 0;
         this.outputBusZ = 0;

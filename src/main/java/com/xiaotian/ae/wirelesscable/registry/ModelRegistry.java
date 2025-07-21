@@ -19,11 +19,13 @@ import java.util.Objects;
 @Mod.EventBusSubscriber(value = Side.CLIENT, modid = AEWirelessChannel.MOD_ID)
 public class ModelRegistry {
 
-    public final static List<Block> BLOCK_LIST = new ArrayList<>();
+    public final static List<Block> BLOOM_BLOCK_LIST = new ArrayList<>();
 
     @SubscribeEvent
     public static void onModelBake(ModelBakeEvent event) {
-        for (Block block : BLOCK_LIST) {
+        if (BLOOM_BLOCK_LIST.isEmpty()) return;
+
+        for (Block block : BLOOM_BLOCK_LIST) {
             final ResourceLocation registryName = block.getRegistryName();
             if (Objects.isNull(registryName)) continue;
             final String blockName = registryName.toString();

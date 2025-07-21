@@ -2,14 +2,17 @@ package com.xiaotian.ae.wirelesscable.block;
 
 import appeng.me.helpers.AENetworkProxy;
 import com.xiaotian.ae.wirelesscable.tile.TileWirelessBus;
+import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
@@ -23,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.EnumSet;
+import java.util.Objects;
 
 @SuppressWarnings("deprecation")
 public abstract class BlockBaseWirelessBus extends BlockBaseBus {
@@ -75,7 +79,17 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
     public void onBlockPlacedBy(final World world, final BlockPos pos, final IBlockState state, final EntityLivingBase placer, final ItemStack stack) {
         super.onBlockPlacedBy(world, pos, state, placer, stack);
         if (!world.isRemote) {
+
+            Block block = world.getBlockState(pos).getBlock();
             TileEntity tileEntity = world.getTileEntity(pos);
+            if (Objects.isNull(tileEntity)) return;
+            if (block instanceof ITileWithWireless iTileWithWireless) {
+                final boolean needInitTagFromItemStack = iTileWithWireless.needInitTagFromItemStack();
+                if (needInitTagFromItemStack) {
+                    final NBTTagCompound tagCompound = stack.getTagCompound();
+                    if (Objects.nonNull(tagCompound)) iTileWithWireless.initAEConnectionFromItemStackTag(tagCompound, tileEntity);
+                }
+            }
             if (tileEntity instanceof final TileWirelessBus tileWirelessBus && placer instanceof EntityPlayer) {
                 final AENetworkProxy proxy = tileWirelessBus.getProxy();
                 proxy.setOwner((EntityPlayer) placer);
@@ -111,17 +125,33 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
     public boolean onBlockActivated(final World worldIn, final BlockPos pos, final IBlockState state, final EntityPlayer playerIn, final EnumHand hand, final EnumFacing facing, final float hitX, final float hitY, final float hitZ) {
 
         if (actionWithConnectionCard(worldIn, pos, playerIn, hand)) return true;
-        if (!worldIn.isRemote) {
-            final ItemStack heldItem = playerIn.getHeldItem(hand);
-            if (!heldItem.isEmpty()) {
-                final int[] oreIDs = OreDictionary.getOreIDs(heldItem);
-                for (int oreID : oreIDs) {
-                    final String oreName = OreDictionary.getOreName(oreID);
-                    if (StringUtils.equals("itemQuartzWrench", oreName)) {
-                        if (!playerIn.isSneaking()) return false;
-                        worldIn.destroyBlock(pos, true);
-                        return true;
-                    }
+        final ItemStack heldItem = playerIn.getHeldItem(hand);
+        if (!heldItem.isEmpty()) {
+            final int[] oreIDs = OreDictionary.getOreIDs(heldItem);
+            for (int oreID : oreIDs) {
+                final String oreName = OreDictionary.getOreName(oreID);
+                if (StringUtils.equals("itemQuartzWrench", oreName)) {
+                    if (worldIn.isRemote) return true;
+
+                    if (!playerIn.isSneaking()) return false;
+                    TileEntity tile = worldIn.getTileEntity(pos);
+                    if (Objects.isNull(tile)) return false;
+                    final NBTTagCompound nbtTagCompound = new NBTTagCompound();
+                    tile.writeToNBT(nbtTagCompound);
+                    final Block blockType = tile.getBlockType();
+
+                    worldIn.setBlockToAir(pos);
+                    final ItemStack itemStack = new ItemStack(blockType);
+                    itemStack.setTagCompound(nbtTagCompound);
+                    EntityItem entityItem = new EntityItem(worldIn,
+                            pos.getX() + 0.5,
+                            pos.getY() + 0.5,
+                            pos.getZ() + 0.5,
+                            itemStack
+                    );
+                    entityItem.setDefaultPickupDelay();
+                    worldIn.spawnEntity(entityItem);
+                    return true;
                 }
             }
         }

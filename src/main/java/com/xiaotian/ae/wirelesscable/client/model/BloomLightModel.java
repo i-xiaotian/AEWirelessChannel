@@ -1,7 +1,9 @@
 package com.xiaotian.ae.wirelesscable.client.model;
 
+import com.xiaotian.ae.wirelesscable.block.IBloomTexture;
 import com.xiaotian.ae.wirelesscable.client.RenderUtils;
 import mcp.MethodsReturnNonnullByDefault;
+import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -33,11 +35,13 @@ public class BloomLightModel implements IBakedModel {
     @Override
     public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
         List<BakedQuad> originalQuads = base.getQuads(state, side, rand);
+        final Block block = state.getBlock();
+        if (!(block instanceof IBloomTexture iBloomTexture)) return originalQuads;
         List<BakedQuad> quads = new ArrayList<>(originalQuads.size());
 
         for (BakedQuad quad : originalQuads) {
             String name = quad.getSprite().getIconName();
-            if (name.endsWith("_bloom")) {
+            if (name.endsWith(iBloomTexture.getBloomTextureEndWith())) {
                 BakedQuad brightQuad = cache.get(quad);
                 if (Objects.isNull(brightQuad)) {
                     brightQuad = makeFullBrightQuad(quad);
@@ -59,14 +63,13 @@ public class BloomLightModel implements IBakedModel {
 
         UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(newFormat);
 
-        final VertexLighterFlat trans = getVertexLighterFlat(builder);
-
-        quad.pipe(trans);
-
         builder.setQuadTint(quad.getTintIndex());
         builder.setQuadOrientation(quad.getFace());
         builder.setTexture(quad.getSprite());
         builder.setApplyDiffuseLighting(false);
+
+        final VertexLighterFlat trans = getVertexLighterFlat(builder);
+        quad.pipe(trans);
 
         return builder.build();
     }
@@ -78,19 +81,6 @@ public class BloomLightModel implements IBakedModel {
             protected void updateLightmap(float[] normal, float[] lightMap, float x, float y, float z) {
                 lightMap[0] = MAX_LIGHT;
                 lightMap[1] = MAX_LIGHT;
-            }
-
-            @Override
-            @ParametersAreNonnullByDefault
-            protected void updateColor(float[] normal, float[] color, float x, float y, float z, float tint, int multiplier) {
-                color[0] = 1.0f;
-                color[1] = 1.0f;
-                color[2] = 1.0f;
-                if (tint != -1) {
-                    color[0] *= ((multiplier >> 16) & 0xFF) / 255f;
-                    color[1] *= ((multiplier >> 8) & 0xFF) / 255f;
-                    color[2] *= (multiplier & 0xFF) / 255f;
-                }
             }
 
         };
