@@ -211,8 +211,6 @@ dependencies {
     implementation("software.bernie.geckolib:geckolib-forge-1.12.2:3.0.31")
     // GTCEu / Bloom Effect Support
     compileOnly(rfg.deobf("curse.maven:gregtech-ce-unofficial-557242:5322654"))
-    // Bloom Effect Support
-    implementation(rfg.deobf("kasuminova:lumenized:1.0.3:dev"))
 
     // Multiblocked
     implementation(rfg.deobf("curse.maven:multiblocked-604054:4753960"))
