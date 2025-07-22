@@ -12,7 +12,7 @@ plugins {
 
 // Project properties
 group = "com.xiaotian.ae.wirelesscable"
-version = "1.0.0"
+version = "1.0.0-beta"
 
 // Set the toolchain version to decouple the Java we run Gradle with from the Java used to compile and run the mod
 java {
@@ -177,9 +177,9 @@ dependencies {
     annotationProcessor("org.ow2.asm:asm-debug-all:5.2")
     annotationProcessor("com.google.guava:guava:30.0-jre")
     annotationProcessor("com.google.code.gson:gson:2.8.9")
-    annotationProcessor (mixin) {
-        isTransitive = false
-    }
+//    annotationProcessor (mixin) {
+//        isTransitive = false
+//    }
 
     implementation("CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.+")
     implementation(rfg.deobf("curse.maven:had-enough-items-557549:4810661"))
