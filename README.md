@@ -1,7 +1,7 @@
 # AEWirelessChannel
 
 [![GitHub](https://img.shields.io/badge/GitHub-link-blue)](https://github.com/i-xiaotian/AEWirelessChannel)
-[![License: MIT](https://img.shields.io/badge/License-GPL3.0-yellow.svg)](https://github.com/i-xiaotian/AvaritiaItem/blob/1.0.1-beta/LICENCE)
+[![License: MIT](https://img.shields.io/badge/License-GPL3.0-yellow.svg)](https://github.com/i-xiaotian/AEWirelessChannel/blob/master/LICENSE)
 
 **AEWirelessChannel** is a Minecraft mod designed to enhance Applied Energistics 2 (AE2) by introducing wireless AE channel transmission. It simplifies complex cable networks by offering stable and persistent wireless connections between devices.
 
