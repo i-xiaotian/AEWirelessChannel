@@ -1,0 +1,20 @@
+{
+  "type": "forge:ore_shapeless",
+  "ingredients": [
+    {
+      "item": "aewirelesschannel:block_wireless_input_bus"
+    },
+    {
+      "item": "aewirelesschannel:block_wireless_input_bus"
+    },
+    {
+      "item": "aewirelesschannel:block_wireless_input_bus"
+    },
+    {
+      "item": "aewirelesschannel:block_wireless_input_bus"
+    }
+  ],
+  "result": {
+    "item": "aewirelesschannel:block_dense_wireless_input_bus"
+  }
+}

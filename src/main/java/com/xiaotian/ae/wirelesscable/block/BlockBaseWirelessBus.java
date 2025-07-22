@@ -2,6 +2,7 @@ package com.xiaotian.ae.wirelesscable.block;
 
 import appeng.me.helpers.AENetworkProxy;
 import com.xiaotian.ae.wirelesscable.tile.TileWirelessBus;
+import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
@@ -25,10 +26,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Objects;
 
 @SuppressWarnings("deprecation")
+@MethodsReturnNonnullByDefault
 public abstract class BlockBaseWirelessBus extends BlockBaseBus {
 
     public static final PropertyDirection FACING = PropertyDirection.create("facing");
@@ -165,6 +169,13 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
         EnumFacing facing = state.getValue(FACING);
         return this.rotateAABB(facing);
     }
+
+    @Override
+    @ParametersAreNonnullByDefault
+    public List<ItemStack> getDrops(IBlockAccess world, BlockPos pos, IBlockState state, int fortune) {
+        return Collections.emptyList();
+    }
+
 
     protected abstract boolean actionWithConnectionCard(final World worldIn, final BlockPos pos, final EntityPlayer playerIn, final EnumHand hand);
 
