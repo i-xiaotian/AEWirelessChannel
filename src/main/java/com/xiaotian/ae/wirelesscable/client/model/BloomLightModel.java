@@ -1,31 +1,24 @@
 package com.xiaotian.ae.wirelesscable.client.model;
 
 import com.xiaotian.ae.wirelesscable.block.IBloomTexture;
-import com.xiaotian.ae.wirelesscable.util.RenderUtils;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.block.model.ItemOverrideList;
+import net.minecraft.block.BlockState;
+import net.minecraft.client.renderer.model.BakedQuad;
+import net.minecraft.client.renderer.model.IBakedModel;
+import net.minecraft.client.renderer.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.util.EnumFacing;
-import net.minecraftforge.client.model.pipeline.UnpackedBakedQuad;
-import net.minecraftforge.client.model.pipeline.VertexLighterFlat;
+import net.minecraft.util.Direction;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
-
-import static com.xiaotian.ae.wirelesscable.AEWirelessChannel.log;
 
 @MethodsReturnNonnullByDefault
 @SuppressWarnings("deprecation")
 public class BloomLightModel implements IBakedModel {
 
-    private static final float MAX_LIGHT = 0.007f;
+//    private static final float MAX_LIGHT = 0xF000F0;
     private final IBakedModel base;
 
     private final Map<BakedQuad, BakedQuad> cache = new IdentityHashMap<>();
@@ -35,14 +28,16 @@ public class BloomLightModel implements IBakedModel {
     }
 
     @Override
-    public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
+    public List<BakedQuad> getQuads(@Nullable final BlockState state, @Nullable final Direction side, @Nonnull final Random rand) {
+        if (Objects.isNull(state)) return Collections.emptyList();
         List<BakedQuad> originalQuads = base.getQuads(state, side, rand);
         final Block block = state.getBlock();
-        if (!(block instanceof IBloomTexture iBloomTexture)) return originalQuads;
+        if (!(block instanceof IBloomTexture)) return originalQuads;
         List<BakedQuad> quads = new ArrayList<>(originalQuads.size());
 
+        IBloomTexture iBloomTexture = (IBloomTexture) block;
         for (BakedQuad quad : originalQuads) {
-            String name = quad.getSprite().getIconName();
+            String name = quad.getSprite().getName().getNamespace();
             if (name.endsWith(iBloomTexture.getBloomTextureEndWith())) {
                 BakedQuad brightQuad = cache.get(quad);
                 if (Objects.isNull(brightQuad)) {
@@ -57,37 +52,32 @@ public class BloomLightModel implements IBakedModel {
         return quads;
     }
 
+    public static BakedQuad makeFullBrightQuad(BakedQuad quad) {
+        int[] originalData = quad.getVertexData();
+        int[] newData = originalData.clone();
 
+        int vertexCount = 4;
+        int intsPerVertex = originalData.length / vertexCount;
 
-    private BakedQuad makeFullBrightQuad(BakedQuad quad) {
-        if (RenderUtils.isLightMapDisabled()) return quad;
+        // 自己打包最大光照，天空和区块光都是15
+        int maxBlockLight = 15;
+        int maxSkyLight = 15;
+        int packedLight = (maxBlockLight & 0xF) | ((maxSkyLight & 0xF) << 4);
+        packedLight |= packedLight << 8;
+        packedLight |= packedLight << 16;
 
-        VertexFormat newFormat = RenderUtils.getFormatWithLightMap(quad.getFormat());
-        UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(newFormat);
+        // 光照坐标的偏移（float，两个int）一般是第6和7个int
+        int lightmapUOffset = 6;
 
-        builder.setQuadTint(quad.getTintIndex());
-        builder.setQuadOrientation(quad.getFace());
-        builder.setTexture(quad.getSprite());
-        builder.setApplyDiffuseLighting(false);
+        for (int vertex = 0; vertex < vertexCount; vertex++) {
+            int baseIndex = vertex * intsPerVertex;
 
-        final VertexLighterFlat trans = this.getVertexLighterFlat(builder);
-        quad.pipe(trans);
+            // 写入最大光照，先转float再写入int数组
+            newData[baseIndex + lightmapUOffset] = Float.floatToRawIntBits((float) packedLight);
+            newData[baseIndex + lightmapUOffset + 1] = 0;
+        }
 
-        return builder.build();
-    }
-
-    private VertexLighterFlat getVertexLighterFlat(final UnpackedBakedQuad.Builder builder) {
-        VertexLighterFlat trans = new VertexLighterFlat(Minecraft.getMinecraft().getBlockColors()) {
-            @Override
-            @ParametersAreNonnullByDefault
-            protected void updateLightmap(float[] normal, float[] lightMap, float x, float y, float z) {
-                lightMap[0] = MAX_LIGHT;
-                lightMap[1] = MAX_LIGHT;
-            }
-
-        };
-        trans.setParent(builder);
-        return trans;
+        return new BakedQuad(newData, quad.getTintIndex(), quad.getFace(), quad.getSprite(), quad.applyDiffuseLighting());
     }
 
     @Override
@@ -111,13 +101,12 @@ public class BloomLightModel implements IBakedModel {
     }
 
     @Override
-    public ItemCameraTransforms getItemCameraTransforms() {
-        return base.getItemCameraTransforms();
+    public boolean isSideLit() {
+        return base.isSideLit();
     }
 
     @Override
     public ItemOverrideList getOverrides() {
         return base.getOverrides();
     }
-
 }

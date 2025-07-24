@@ -1,42 +1,46 @@
 package com.xiaotian.ae.wirelesscable;
 
+import com.xiaotian.ae.wirelesscable.config.AEWirelessChannelConfig;
+import com.xiaotian.ae.wirelesscable.proxy.ClientProxy;
 import com.xiaotian.ae.wirelesscable.proxy.CommonProxy;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = AEWirelessChannel.MOD_ID, name = AEWirelessChannel.MOD_NAME, version = AEWirelessChannel.VERSION,
-        dependencies = "required-after:forge@[14.21.0.2371,);" +
-                "after:appliedenergistics2@[rv6-stable-7,);",
-        acceptedMinecraftVersions = "[1.12, 1.13)")
-@SuppressWarnings("unused")
+@Mod(AEWirelessChannel.MOD_ID)
 public class AEWirelessChannel {
 
     public static final String MOD_ID = "aewirelesschannel";
     public static final String MOD_NAME = "AE-Wireless-Channel";
-    public static final String VERSION = Tags.VERSION;
-    private static final String COMMON_PROXY = "com.xiaotian.ae.wirelesscable.proxy.CommonProxy";
-    private static final String CLIENT_PROXY = "com.xiaotian.ae.wirelesscable.proxy.ClientProxy";
 
     public static AEWirelessChannel instance;
+    public static Logger log = LogManager.getLogger();
 
-    public static Logger log;
-
-    @SidedProxy(clientSide = CLIENT_PROXY, serverSide = COMMON_PROXY)
     public static CommonProxy proxy;
 
-    @Mod.EventHandler
-    public void preInit(FMLPreInitializationEvent event) {
-        log = event.getModLog();
+    public AEWirelessChannel() {
         instance = this;
-        event.getModMetadata().version = VERSION;
-        proxy.preInit();
+
+        // 注册配置文件
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, AEWirelessChannelConfig.CLIENT_SPEC);
+
+        // 根据不同物理环境加载代理
+        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> () -> proxy = new ClientProxy());
+        DistExecutor.safeRunWhenOn(Dist.DEDICATED_SERVER, () -> () -> proxy = new CommonProxy());
+
+        // 注册事件监听器
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(proxy::setup);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::commonSetup);
     }
 
-    @Mod.EventHandler
-    public void init(FMLInitializationEvent event) {
+    // 通用初始化，类似旧版init
+    private void commonSetup(final net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent event) {
+        log.info(MOD_NAME + " common setup start.");
         proxy.init();
     }
 

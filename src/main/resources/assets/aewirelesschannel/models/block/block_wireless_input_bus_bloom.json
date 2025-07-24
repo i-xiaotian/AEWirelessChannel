@@ -2,9 +2,9 @@
 	"texture_size": [64, 64],
 	"shade": false,
 	"textures": {
-		"1": "aewirelesschannel:blocks/block_wireless_input_bus",
+		"1": "aewirelesschannel:block/block_wireless_input_bus",
 		"2": "aewirelesschannel:blocks/bloom/block_wireless_input_bus_bloom",
-		"particle": "aewirelesschannel:blocks/particle_wireless_input_p2"
+		"particle": "aewirelesschannel:block/particle_wireless_input_p2"
 	},
 	"elements": [
 		{

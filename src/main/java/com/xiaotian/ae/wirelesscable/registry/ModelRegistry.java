@@ -3,40 +3,60 @@ package com.xiaotian.ae.wirelesscable.registry;
 import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import com.xiaotian.ae.wirelesscable.client.model.BloomLightModel;
 import net.minecraft.block.Block;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ModelResourceLocation;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.client.renderer.model.IBakedModel;
+import net.minecraft.client.renderer.model.ModelResourceLocation;
+import net.minecraft.item.Item;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ModelBakeEvent;
+import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@Mod.EventBusSubscriber(value = Side.CLIENT, modid = AEWirelessChannel.MOD_ID)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT, modid = AEWirelessChannel.MOD_ID)
 public class ModelRegistry {
 
     public final static List<Block> BLOOM_BLOCK_LIST = new ArrayList<>();
 
     @SubscribeEvent
+    public static void onModelRegister(ModelRegistryEvent event) {
+        for (Item item : Registry.ITEM_LIST) {
+            ResourceLocation name = item.getRegistryName();
+            if (Objects.nonNull(name)) {
+                ModelLoader.addSpecialModel(new ModelResourceLocation(name, "inventory"));
+            }
+        }
+
+        for (Block block : BLOOM_BLOCK_LIST) {
+            ResourceLocation name = block.getRegistryName();
+            if (Objects.nonNull(name)) {
+                ModelLoader.addSpecialModel(new ModelResourceLocation(name, "inventory"));
+            }
+        }
+    }
+
+    @SubscribeEvent
     public static void onModelBake(ModelBakeEvent event) {
         if (BLOOM_BLOCK_LIST.isEmpty()) return;
-
         for (Block block : BLOOM_BLOCK_LIST) {
             final ResourceLocation registryName = block.getRegistryName();
             if (Objects.isNull(registryName)) continue;
             final String blockName = registryName.toString();
-            for (EnumFacing facing : EnumFacing.values()) {
-                String variant = String.format("facing=%s,powered=true", facing.getName());
+            for (Direction facing : Direction.values()) {
+                String variant = String.format("facing=%s,powered=true", facing.getString());
                 ModelResourceLocation modelResLoc = new ModelResourceLocation(blockName, variant);
-                IBakedModel base = event.getModelRegistry().getObject(modelResLoc);
+                IBakedModel base = event.getModelRegistry().get(modelResLoc);
                 if (base != null) {
-                    event.getModelRegistry().putObject(modelResLoc, new BloomLightModel(base));
+                    event.getModelRegistry().put(modelResLoc, new BloomLightModel(base));
                 }
             }
         }
     }
+
 }

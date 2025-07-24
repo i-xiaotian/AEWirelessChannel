@@ -2,29 +2,25 @@ package com.xiaotian.ae.wirelesscable.item;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
-import java.util.Objects;
 
-public abstract class ItemBlockBase extends ItemBlock implements IHasTooltips {
+public abstract class ItemBlockBase extends BlockItem implements IHasTooltips {
 
-    public ItemBlockBase(Block block) {
-        super(block);
-        final ResourceLocation registryName = block.getRegistryName();
-        if (Objects.nonNull(registryName)) setRegistryName(block.getRegistryName());
-        setTranslationKey(block.getTranslationKey());
+    public ItemBlockBase(Block block, Properties properties) {
+        super(block, properties);
     }
 
     @Override
     @ParametersAreNonnullByDefault
-    public void addInformation(final ItemStack stack, @Nullable final World worldIn, final List<String> tooltip, final ITooltipFlag flagIn) {
-        super.addInformation(stack, worldIn, tooltip, flagIn);
+    public void addInformation(final ItemStack stack, @Nullable final World world, final List<ITextComponent> tooltip, final ITooltipFlag flag) {
+        super.addInformation(stack, world, tooltip, flag);
         addTooltips(stack, tooltip);
     }
 }

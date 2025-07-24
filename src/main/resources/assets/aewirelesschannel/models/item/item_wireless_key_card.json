@@ -1,6 +1,6 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "aewirelesschannel:items/item_wireless_key_card"
+    "layer0": "aewirelesschannel:item/item_wireless_key_card"
   }
 }

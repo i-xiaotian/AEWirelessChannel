@@ -1,26 +1,26 @@
 package com.xiaotian.ae.wirelesscable.registry;
 
+import com.mojang.datafixers.DSL;
 import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
-import com.xiaotian.ae.wirelesscable.block.BlockBaseWirelessBus;
 import com.xiaotian.ae.wirelesscable.block.IBlockBase;
 import com.xiaotian.ae.wirelesscable.block.IBloomTexture;
-import com.xiaotian.ae.wirelesscable.block.ITileWithWireless;
 import net.minecraft.block.Block;
-import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.client.renderer.model.ModelResourceLocation;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import static com.xiaotian.ae.wirelesscable.AEWirelessChannel.log;
 
@@ -28,69 +28,59 @@ import static com.xiaotian.ae.wirelesscable.AEWirelessChannel.log;
 public class Registry {
 
     public static final List<Block> BLOCK_LIST = new ArrayList<>();
-    private static final List<Item> BLOCK_ITEM_LIST = new ArrayList<>();
+    public static final List<TileEntityType<?>> TILE_LIST = new ArrayList<>();
+    public static final List<Item> ITEM_LIST = new ArrayList<>();
 
-    private static final List<Item> ITEM_LIST = new ArrayList<>();
-
-    public static <T extends Block> T registerBlock(T block) {
+    public static <T extends Block> T registerBlock(String name, T block) {
+        block.setRegistryName(new ResourceLocation(AEWirelessChannel.MOD_ID, name));
         BLOCK_LIST.add(block);
         return block;
     }
 
-    public static <T extends Item> T registerItem(T item) {
+    public static <T extends Item> T registerItem(String name, T item) {
+        item.setRegistryName(new ResourceLocation(AEWirelessChannel.MOD_ID, name));
         ITEM_LIST.add(item);
         return item;
+    }
+
+    public static <T extends TileEntity> TileEntityType<T> createType(String registryName, Supplier<T> factory, Block... validBlocks) {
+        TileEntityType<T> type = TileEntityType.Builder
+                .create(factory, validBlocks)
+                .build(DSL.remainderType());
+        type.setRegistryName(registryName);
+        TILE_LIST.add(type);
+        return type;
     }
 
     @SubscribeEvent
     public static void onRegisterBlock(RegistryEvent.Register<Block> event) {
         log.info("block size: {}", BLOCK_LIST.size());
-        event.getRegistry().registerAll(BLOCK_LIST.toArray(new Block[0]));
-        for (Block block : BLOCK_LIST) {
+        BLOCK_LIST.forEach(block -> {
+            event.getRegistry().register(block);
             if (block instanceof IBloomTexture) ModelRegistry.BLOOM_BLOCK_LIST.add(block);
-            if (!(block instanceof final ITileWithWireless hasTileEntity)) return;
-            final Class<? extends TileEntity> tileEntityClass = hasTileEntity.getTileEntityClass();
-            final String tileEntityId = hasTileEntity.getTileEntityId();
-            GameRegistry.registerTileEntity(tileEntityClass, new ResourceLocation(AEWirelessChannel.MOD_ID, tileEntityId));
-        }
+        });
+    }
+
+    @SubscribeEvent
+    public static void onRegisterTileEntities(RegistryEvent.Register<TileEntityType<?>> event) {
+        event.getRegistry().registerAll(TILE_LIST.toArray(new TileEntityType[0]));
     }
 
     @SubscribeEvent
     public static void onRegisterItem(RegistryEvent.Register<Item> event) {
         for (Block block : BLOCK_LIST) {
-            ItemBlock itemBlock;
-            if (block instanceof IBlockBase blockBase) {
+            BlockItem itemBlock;
+            if (block instanceof IBlockBase) {
+                IBlockBase blockBase = (IBlockBase) block;
                 itemBlock = blockBase.createItemBlock(block);
             } else {
-                itemBlock = new ItemBlock(block);
+                itemBlock = new BlockItem(block, new Item.Properties());
                 final ResourceLocation registryName = block.getRegistryName();
-                final String translationKey = block.getTranslationKey();
                 if (Objects.nonNull(registryName)) itemBlock.setRegistryName(registryName);
-                itemBlock.setTranslationKey(translationKey);
             }
             event.getRegistry().register(itemBlock);
-            BLOCK_ITEM_LIST.add(itemBlock);
         }
         event.getRegistry().registerAll(ITEM_LIST.toArray(new Item[0]));
-    }
-
-
-    @SubscribeEvent
-    public static void onRegisterModel(ModelRegistryEvent event) {
-        BLOCK_ITEM_LIST.forEach(item ->
-                ModelLoader.setCustomModelResourceLocation(
-                        item,
-                        0,
-                        new ModelResourceLocation(Objects.requireNonNull(item.getRegistryName()), "inventory")
-                )
-        );
-        ITEM_LIST.forEach(item ->
-                ModelLoader.setCustomModelResourceLocation(
-                        item,
-                        0,
-                        new ModelResourceLocation(Objects.requireNonNull(item.getRegistryName()), "inventory")
-                )
-        );
     }
 
 

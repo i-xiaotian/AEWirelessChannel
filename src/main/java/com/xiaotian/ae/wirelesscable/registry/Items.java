@@ -7,8 +7,8 @@ public class Items {
 
     public static Item ITEM_WIRELESS_KEY_CARD;
 
-    public static void preInit() {
-        ITEM_WIRELESS_KEY_CARD = Registry.registerItem(new ItemWirelessKeyCard());
+    public static void register() {
+        ITEM_WIRELESS_KEY_CARD = Registry.registerItem("item_wireless_key_card", new ItemWirelessKeyCard());
     }
 
 }

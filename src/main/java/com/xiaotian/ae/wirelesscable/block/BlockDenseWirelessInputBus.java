@@ -3,10 +3,11 @@ package com.xiaotian.ae.wirelesscable.block;
 import com.xiaotian.ae.wirelesscable.item.ItemBlockDenseWirelessInputBus;
 import com.xiaotian.ae.wirelesscable.tile.TileDenseWirelessInputBus;
 import net.minecraft.block.Block;
-import net.minecraft.item.ItemBlock;
+import net.minecraft.block.BlockState;
+import net.minecraft.item.BlockItem;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.world.World;
+import net.minecraft.world.IBlockReader;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -31,7 +32,7 @@ public class BlockDenseWirelessInputBus extends BlockWirelessInputBus {
 
     @Nullable
     @Override
-    public TileEntity createNewTileEntity(@Nonnull final World worldIn, final int meta) {
+    public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
         return new TileDenseWirelessInputBus();
     }
 
@@ -43,7 +44,7 @@ public class BlockDenseWirelessInputBus extends BlockWirelessInputBus {
 
     @Nonnull
     @Override
-    public ItemBlock createItemBlock(final Block block) {
+    public BlockItem createItemBlock(final Block block) {
         return new ItemBlockDenseWirelessInputBus(block);
     }
 }

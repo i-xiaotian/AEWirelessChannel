@@ -2,7 +2,7 @@ package com.xiaotian.ae.wirelesscable.integration.top;
 
 import appeng.me.helpers.AENetworkProxy;
 import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
-import com.xiaotian.ae.wirelesscable.config.AEWirelessCableConfig;
+import com.xiaotian.ae.wirelesscable.config.AEWirelessChannelConfig;
 import com.xiaotian.ae.wirelesscable.entity.ConnectionInfo;
 import com.xiaotian.ae.wirelesscable.tile.TileWirelessBus;
 import com.xiaotian.ae.wirelesscable.tile.TileWirelessInputBus;
@@ -11,10 +11,9 @@ import mcjty.theoneprobe.api.IProbeHitData;
 import mcjty.theoneprobe.api.IProbeInfo;
 import mcjty.theoneprobe.api.IProbeInfoProvider;
 import mcjty.theoneprobe.api.ProbeMode;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
@@ -32,27 +31,31 @@ public class TopInfoProvider implements IProbeInfoProvider {
     }
 
     @Override
-    public void addProbeInfo(final ProbeMode probeMode, final IProbeInfo iProbeInfo, final EntityPlayer entityPlayer, final World world, final IBlockState iBlockState, final IProbeHitData iProbeHitData) {
-        if (!iBlockState.getBlock().hasTileEntity(iBlockState)) return;
+    public void addProbeInfo(final ProbeMode probeMode, final IProbeInfo iProbeInfo, final PlayerEntity playerEntity, final World world, final BlockState blockState, final IProbeHitData iProbeHitData) {
+        if (!blockState.getBlock().hasTileEntity(blockState)) return;
 
         final BlockPos pos = iProbeHitData.getPos();
         final TileEntity tileEntity = world.getTileEntity(pos);
         if (Objects.isNull(tileEntity)) return;
-        if (!(tileEntity instanceof final TileWirelessBus tileWirelessBus)) return;
+        if (!(tileEntity instanceof TileWirelessBus)) return;
+        TileWirelessBus tileWirelessBus = (TileWirelessBus) tileEntity;
 
         final AENetworkProxy proxy = tileWirelessBus.getProxy();
         final boolean active = proxy.isActive();
         final String onlineInfo = active ? "{*top.aewirelesschannel.device_online*}" : "{*top.aewirelesschannel.device_offline*}";
         final TextFormatting color = active ? TextFormatting.WHITE : TextFormatting.GRAY;
         iProbeInfo.text(color + onlineInfo);
-        if (AEWirelessCableConfig.topConnectionInfoShowType && !entityPlayer.isSneaking()) return;
+        if (AEWirelessChannelConfig.CLIENT.topConnectionInfoShowType.get() && !playerEntity.isSneaking()) return;
 
-        if (tileWirelessBus instanceof TileWirelessInputBus wirelessInputBus) {
+        if (tileWirelessBus instanceof TileWirelessInputBus) {
+            TileWirelessInputBus wirelessInputBus = (TileWirelessInputBus) tileWirelessBus;
             showInputBusTopInfo(iProbeInfo, wirelessInputBus);
-        } else if (tileWirelessBus instanceof TileWirelessOutputBus wirelessOutputBus) {
+        } else if (tileWirelessBus instanceof TileWirelessOutputBus) {
+            TileWirelessOutputBus wirelessOutputBus = (TileWirelessOutputBus) tileWirelessBus;
             showOutputBusTopInfo(iProbeInfo, wirelessOutputBus);
         }
     }
+
 
     private static void showInputBusTopInfo(final IProbeInfo iProbeInfo, final TileWirelessInputBus wirelessInputBus) {
         final ConnectionInfo currentConnection = wirelessInputBus.getCurrentConnection();
@@ -89,9 +92,10 @@ public class TopInfoProvider implements IProbeInfoProvider {
             connectionKeyInfo.text(I18n.format("top.aewirelesschannel.wireless_bus_connection_info", connectionKey));
             connectionInfo.text(I18n.format("top.aewirelesschannel.wireless_output_bus_connection_info", inputBusConnectionInfo.getInputBusX(), inputBusConnectionInfo.getInputBusY(), inputBusConnectionInfo.getInputBusZ()));
             showCount++;
-            if (showCount >= AEWirelessCableConfig.topConnectionInfoShowCount) {
+            final Integer topInfoCount = AEWirelessChannelConfig.CLIENT.topConnectionInfoShowCount.get();
+            if (showCount >= topInfoCount) {
                 final int size = keySet.size();
-                final int remainingCount = size - AEWirelessCableConfig.topConnectionInfoShowCount;
+                final int remainingCount = size - topInfoCount;
                 final IProbeInfo moreThanInfoV = getVertical(vertical);
                 final IProbeInfo moreThanInfoH = moreThanInfoV.horizontal();
                 moreThanInfoH.text(I18n.format("top.aewirelesschannel.wireless_bus_connection_info_more_than", remainingCount));

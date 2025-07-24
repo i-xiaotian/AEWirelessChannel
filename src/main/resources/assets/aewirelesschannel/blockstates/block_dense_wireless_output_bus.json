@@ -1,61 +1,57 @@
 {
-  "forge_marker": 1,
-  "defaults": {
-    "model": "aewirelesschannel:block_dense_wireless_output_bus_bloom"
-  },
   "variants": {
     "facing=north,powered=false": {
-      "model": "aewirelesschannel:block_dense_wireless_output_bus_off",
+      "model": "aewirelesschannel:block/block_dense_wireless_output_bus_off",
       "x": 90,
       "y": 0
     },
     "facing=north,powered=true": {
-      "model": "aewirelesschannel:block_dense_wireless_output_bus_bloom",
+      "model": "aewirelesschannel:block/block_dense_wireless_output_bus_bloom",
       "x": 90,
       "y": 0
     },
     "facing=south,powered=false": {
-      "model": "aewirelesschannel:block_dense_wireless_output_bus_off",
+      "model": "aewirelesschannel:block/block_dense_wireless_output_bus_off",
       "x": 90,
       "y": 180
     },
     "facing=south,powered=true": {
-      "model": "aewirelesschannel:block_dense_wireless_output_bus_bloom",
+      "model": "aewirelesschannel:block/block_dense_wireless_output_bus_bloom",
       "x": 90,
       "y": 180
     },
     "facing=west,powered=false": {
-      "model": "aewirelesschannel:block_dense_wireless_output_bus_off",
+      "model": "aewirelesschannel:block/block_dense_wireless_output_bus_off",
       "x": 90,
       "y": 270
     },
     "facing=west,powered=true": {
-      "model": "aewirelesschannel:block_dense_wireless_output_bus_bloom",
+      "model": "aewirelesschannel:block/block_dense_wireless_output_bus_bloom",
       "x": 90,
       "y": 270
     },
     "facing=east,powered=false": {
-      "model": "aewirelesschannel:block_dense_wireless_output_bus_off",
+      "model": "aewirelesschannel:block/block_dense_wireless_output_bus_off",
       "x": 90,
       "y": 90
     },
     "facing=east,powered=true": {
-      "model": "aewirelesschannel:block_dense_wireless_output_bus_bloom",
+      "model": "aewirelesschannel:block/block_dense_wireless_output_bus_bloom",
       "x": 90,
       "y": 90
     },
     "facing=up,powered=false": {
-      "model": "aewirelesschannel:block_dense_wireless_output_bus_off"
+      "model": "aewirelesschannel:block/block_dense_wireless_output_bus_off"
     },
     "facing=up,powered=true": {
-      "model": "aewirelesschannel:block_dense_wireless_output_bus_bloom"
+      "model": "aewirelesschannel:block/block_dense_wireless_output_bus_bloom"
     },
     "facing=down,powered=false": {
-      "model": "aewirelesschannel:block_dense_wireless_output_bus_off",
+      "model": "aewirelesschannel:block/block_dense_wireless_output_bus_off",
       "x": 180
     },
     "facing=down,powered=true": {
-      "model": "aewirelesschannel:block_dense_wireless_output_bus_bloom",
+      "model": "aewirelesschannel:block/block_dense_wireless_output_bus_bloom",
       "x": 180
     }
   }

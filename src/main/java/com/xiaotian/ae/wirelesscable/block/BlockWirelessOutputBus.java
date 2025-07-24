@@ -1,39 +1,36 @@
 package com.xiaotian.ae.wirelesscable.block;
 
-import com.xiaotian.ae.wirelesscable.entity.ConnectionInfo;
 import com.xiaotian.ae.wirelesscable.item.ItemBlockWirelessOutputBus;
 import com.xiaotian.ae.wirelesscable.registry.Items;
-import com.xiaotian.ae.wirelesscable.tile.TileWirelessInputBus;
 import com.xiaotian.ae.wirelesscable.tile.TileWirelessOutputBus;
+import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
-import net.minecraft.block.ITileEntityProvider;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
-public class BlockWirelessOutputBus extends BlockBaseWirelessBus implements ITileEntityProvider, ITileWithWireless {
+public class BlockWirelessOutputBus extends BlockBaseWirelessBus implements ITileWithWireless {
 
     private static final AxisAlignedBB BOUNDING_BOX = new AxisAlignedBB(0.25, 0.0, 0.25, 0.75, 0.875, 0.75);
 
     public BlockWirelessOutputBus() {
-        super(Material.GLASS);
+        super(AbstractBlock.Properties.create(Material.GLASS));
     }
 
     @Override
@@ -51,15 +48,20 @@ public class BlockWirelessOutputBus extends BlockBaseWirelessBus implements ITil
         return "block_wireless_output_bus";
     }
 
+    @Override
+    public boolean hasTileEntity(final BlockState state) {
+        return true;
+    }
+
     @Nullable
     @Override
-    public TileEntity createNewTileEntity(@Nonnull final World worldIn, final int meta) {
+    public TileEntity createTileEntity(final BlockState state, final IBlockReader world) {
         return new TileWirelessOutputBus();
     }
 
     @Override
     @Nonnull
-    public ItemBlock createItemBlock(final Block block) {
+    public BlockItem createItemBlock(final Block block) {
         return new ItemBlockWirelessOutputBus(block);
     }
 
@@ -70,32 +72,33 @@ public class BlockWirelessOutputBus extends BlockBaseWirelessBus implements ITil
     }
 
     @Override
-    protected boolean actionWithConnectionCard(final World worldIn, final BlockPos pos, final EntityPlayer playerIn, final EnumHand hand) {
+    @ParametersAreNonnullByDefault
+    protected boolean actionWithConnectionCard(final World worldIn, final BlockPos pos, final PlayerEntity playerIn, final Hand hand) {
         final ItemStack heldItem = playerIn.getHeldItem(hand);
         final Item item = heldItem.getItem();
         if (item != Items.ITEM_WIRELESS_KEY_CARD) return false;
         if (playerIn.isSneaking()) return false;
         if (worldIn.isRemote) return true;
 
-        final NBTTagCompound outputBusBound = writeOutputBusInfoTag(worldIn, pos);
-        heldItem.setTagCompound(outputBusBound);
+        final CompoundNBT outputBusBound = writeOutputBusInfoTag(worldIn, pos);
+        heldItem.setTag(outputBusBound);
 
-        playerIn.sendMessage(new TextComponentString(I18n.format("message.aewirelesschannel.bound_out_put_bus")));
+        playerIn.sendMessage(new StringTextComponent(I18n.format("message.aewirelesschannel.bound_out_put_bus")), playerIn.getUniqueID());
         return true;
     }
 
-    private static NBTTagCompound writeOutputBusInfoTag(final World worldIn, final BlockPos pos) {
+    private static CompoundNBT writeOutputBusInfoTag(final World worldIn, final BlockPos pos) {
         final int x = pos.getX();
         final int y = pos.getY();
         final int z = pos.getZ();
-        final int dimension = worldIn.provider.getDimension();
-        final NBTTagCompound outputBusBound = new NBTTagCompound();
-        final NBTTagCompound outputBusPosNbt = new NBTTagCompound();
-        outputBusPosNbt.setInteger("boundX", x);
-        outputBusPosNbt.setInteger("boundY", y);
-        outputBusPosNbt.setInteger("boundZ", z);
-        outputBusPosNbt.setInteger("dimension", dimension);
-        outputBusBound.setTag("outputBusBound", outputBusPosNbt);
+        final String dimension = worldIn.getDimensionKey().getRegistryName().getNamespace();
+        final CompoundNBT outputBusBound = new CompoundNBT();
+        final CompoundNBT outputBusPosNbt = new CompoundNBT();
+        outputBusPosNbt.putInt("boundX", x);
+        outputBusPosNbt.putInt("boundY", y);
+        outputBusPosNbt.putInt("boundZ", z);
+        outputBusPosNbt.putString("dimension", dimension);
+        outputBusBound.put("outputBusBound", outputBusPosNbt);
         return outputBusBound;
     }
 
@@ -106,8 +109,9 @@ public class BlockWirelessOutputBus extends BlockBaseWirelessBus implements ITil
 
     @Override
     @ParametersAreNonnullByDefault
-    public void initAEConnectionFromItemStackTag(final NBTTagCompound tagCompound, final TileEntity tileEntity) {
-        if (!(tileEntity instanceof TileWirelessOutputBus wirelessOutputBus)) return;
+    public void initAEConnectionFromItemStackTag(final CompoundNBT tagCompound, final TileEntity tileEntity) {
+        if (!(tileEntity instanceof TileWirelessOutputBus)) return;
+        TileWirelessOutputBus wirelessOutputBus = (TileWirelessOutputBus) tileEntity;
         wirelessOutputBus.initConnectionMap(tagCompound, wirelessOutputBus);
 
         wirelessOutputBus.loadWirelessInfo(wirelessOutputBus);
