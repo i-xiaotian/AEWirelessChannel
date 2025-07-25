@@ -1,14 +1,19 @@
 package com.xiaotian.ae.wirelesscable;
 
 import com.xiaotian.ae.wirelesscable.config.AEWirelessChannelConfig;
-import com.xiaotian.ae.wirelesscable.proxy.ModSetupComponent;
+import com.xiaotian.ae.wirelesscable.integration.top.TopInfoProvider;
 import com.xiaotian.ae.wirelesscable.registry.Blocks;
 import com.xiaotian.ae.wirelesscable.registry.Items;
 import com.xiaotian.ae.wirelesscable.registry.TileEntityTypes;
 import com.xiaotian.ae.wirelesscable.tab.AEWirelessItemGroup;
+import mcjty.theoneprobe.TheOneProbe;
+import mcjty.theoneprobe.apiimpl.TheOneProbeImp;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,16 +25,24 @@ public class AEWirelessChannel {
 
     public static AEWirelessChannel instance;
     public final static Logger log = LogManager.getLogger();
-
-    public static ModSetupComponent proxy;
+    public static AEWirelessItemGroup wirelessItemGroup;
 
     public AEWirelessChannel() {
         instance = this;
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::commonSetup);
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, AEWirelessChannelConfig.CLIENT_SPEC);
-        ModSetupComponent.wirelessItemGroup = new AEWirelessItemGroup(AEWirelessChannel.MOD_ID);
+        wirelessItemGroup = new AEWirelessItemGroup(AEWirelessChannel.MOD_ID);
         Blocks.register();
         Items.register();
         TileEntityTypes.register();
+    }
+
+    public void commonSetup(final FMLCommonSetupEvent event) {
+        log.info(AEWirelessChannel.MOD_NAME + " common setup start.");
+        if (ModList.get().isLoaded("theoneprobe")) {
+            final TheOneProbeImp top = TheOneProbe.theOneProbeImp;
+            top.registerProvider(new TopInfoProvider());
+        }
     }
 
 }

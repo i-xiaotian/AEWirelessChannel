@@ -1,6 +1,6 @@
 package com.xiaotian.ae.wirelesscable.item;
 
-import com.xiaotian.ae.wirelesscable.proxy.ModSetupComponent;
+import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import net.minecraft.block.Block;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.BlockItem;
@@ -17,7 +17,7 @@ import java.util.Objects;
 public abstract class ItemBlockBase extends BlockItem implements IHasTooltips {
 
     public ItemBlockBase(Block block, Properties properties) {
-        super(block, properties.tab(ModSetupComponent.wirelessItemGroup));
+        super(block, properties.tab(AEWirelessChannel.wirelessItemGroup));
         final ResourceLocation registryName = block.getRegistryName();
         if (Objects.nonNull(registryName)) setRegistryName(registryName);
     }

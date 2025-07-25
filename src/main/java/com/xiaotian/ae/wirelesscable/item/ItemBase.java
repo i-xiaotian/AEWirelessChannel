@@ -1,6 +1,6 @@
 package com.xiaotian.ae.wirelesscable.item;
 
-import com.xiaotian.ae.wirelesscable.proxy.ModSetupComponent;
+import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -14,7 +14,7 @@ import java.util.List;
 public abstract class ItemBase extends Item implements IHasTooltips {
 
     public ItemBase(Properties properties) {
-        super(properties.tab(ModSetupComponent.wirelessItemGroup));
+        super(properties.tab(AEWirelessChannel.wirelessItemGroup));
     }
 
     @Override
