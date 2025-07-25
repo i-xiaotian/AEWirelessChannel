@@ -22,15 +22,16 @@ import static com.xiaotian.ae.wirelesscable.AEWirelessChannel.log;
 
 public class TileWirelessInputBus extends TileWirelessBus implements ITickableTileEntity {
 
-    private ConnectionInfo currentConnection;
+    private final ConnectionInfo currentConnection;
 
     public TileWirelessInputBus() {
         super(TileEntityTypes.TILE_WIRELESS_INPUT_BUS);
-        this.currentConnection = new ConnectionInfo(pos);
+        this.currentConnection = new ConnectionInfo(worldPosition);
     }
 
     public TileWirelessInputBus(TileEntityType<?> type) {
         super(type);
+        this.currentConnection = new ConnectionInfo(worldPosition);
     }
 
     @Override
@@ -40,8 +41,8 @@ public class TileWirelessInputBus extends TileWirelessBus implements ITickableTi
 
     @Override
     public void tick() {
-        if (Objects.isNull(world)) return;
-        if (world.isRemote) return;
+        if (Objects.isNull(level)) return;
+        if (level.isClientSide) return;
         tickCounter++;
         if (tickCounter % 5 != 0) return;
         if (tickCounter >= 120) tickCounter = 0;
@@ -67,9 +68,9 @@ public class TileWirelessInputBus extends TileWirelessBus implements ITickableTi
 
         try {
             Api.instance().grid().createGridConnection(outputBusNode, inputBusNode);
-            currentConnection.setInputBusX(pos.getX());
-            currentConnection.setInputBusY(pos.getY());
-            currentConnection.setInputBusZ(pos.getZ());
+            currentConnection.setInputBusX(worldPosition.getX());
+            currentConnection.setInputBusY(worldPosition.getY());
+            currentConnection.setInputBusZ(worldPosition.getZ());
             currentConnection.setNeedUpdateGridNode(false);
             wirelessOutputBus.addConnectionInfo(currentConnection);
         } catch (FailedConnectionException e) {
@@ -80,12 +81,12 @@ public class TileWirelessInputBus extends TileWirelessBus implements ITickableTi
 
     @Nonnull
     @Override
-    public CompoundNBT write(@Nonnull final CompoundNBT compound) {
-        final CompoundNBT nbtTagCompound = super.write(compound);
+    public CompoundNBT save(@Nonnull final CompoundNBT compound) {
+        final CompoundNBT nbtTagCompound = super.save(compound);
         final String connectionKey = currentConnection.getConnectionKey();
-        final int inputBusX = pos.getX();
-        final int inputBusY = pos.getY();
-        final int inputBusZ = pos.getZ();
+        final int inputBusX = worldPosition.getX();
+        final int inputBusY = worldPosition.getY();
+        final int inputBusZ = worldPosition.getZ();
         final int outputBusX = currentConnection.getOutputBusX();
         final int outputBusY = currentConnection.getOutputBusY();
         final int outputBusZ = currentConnection.getOutputBusZ();
@@ -103,8 +104,8 @@ public class TileWirelessInputBus extends TileWirelessBus implements ITickableTi
 
     @Override
     @ParametersAreNonnullByDefault
-    public void read(final BlockState state, final CompoundNBT compound) {
-        super.read(state, compound);
+    public void load(final BlockState state, final CompoundNBT compound) {
+        super.load(state, compound);
         initConnectionInfo(compound, this);
     }
 
@@ -113,9 +114,9 @@ public class TileWirelessInputBus extends TileWirelessBus implements ITickableTi
         final int outputBusX = compound.getInt("outputBusX");
         final int outputBusY = compound.getInt("outputBusY");
         final int outputBusZ = compound.getInt("outputBusZ");
-        final int inputBusX = pos.getX();
-        final int inputBusY = pos.getY();
-        final int inputBusZ = pos.getZ();
+        final int inputBusX = worldPosition.getX();
+        final int inputBusY = worldPosition.getY();
+        final int inputBusZ = worldPosition.getZ();
         final boolean connect = compound.getBoolean("connect");
 
         final ConnectionInfo currentConnection = wirelessInputBus.getCurrentConnection();
@@ -143,12 +144,12 @@ public class TileWirelessInputBus extends TileWirelessBus implements ITickableTi
     }
 
     private TileWirelessOutputBus getTileWirelessOutputBus() {
-        if (Objects.isNull(world)) return null;
+        if (Objects.isNull(level)) return null;
         final int targetX = currentConnection.getOutputBusX();
         final int targetY = currentConnection.getOutputBusY();
         final int targetZ = currentConnection.getOutputBusZ();
         final BlockPos blockPos = new BlockPos(targetX, targetY, targetZ);
-        TileEntity outputBusEntity = world.getTileEntity(blockPos);
+        TileEntity outputBusEntity = level.getBlockEntity(blockPos);
         if (Objects.isNull(outputBusEntity)) return null;
         if (!(outputBusEntity instanceof TileWirelessOutputBus)) return null;
         return (TileWirelessOutputBus) outputBusEntity;

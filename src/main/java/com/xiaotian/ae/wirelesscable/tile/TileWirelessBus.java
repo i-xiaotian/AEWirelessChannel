@@ -52,8 +52,8 @@ public abstract class TileWirelessBus extends TileEntity implements IGridProxyab
 
     @Override
     public void securityBreak() {
-        if (Objects.isNull(world)) return;
-        world.destroyBlock(getPos(), true);
+        if (Objects.isNull(level)) return;
+        level.destroyBlock(worldPosition, true);
     }
 
     @Override
@@ -84,16 +84,16 @@ public abstract class TileWirelessBus extends TileEntity implements IGridProxyab
     }
 
     @Override
-    public void validate() {
-        super.validate();
+    public void onLoad() {
+        super.onLoad();
         proxy.validate();
         proxy.onReady();
     }
 
     @Override
     @Nonnull
-    public CompoundNBT write(@Nonnull final CompoundNBT compound) {
-        super.write(compound);
+    public CompoundNBT save(@Nonnull final CompoundNBT compound) {
+        super.save(compound);
         proxy.writeToNBT(compound);
         final CompoundNBT sidesTag = new CompoundNBT();
         final EnumSet<Direction> connectableSides = proxy.getConnectableSides();
@@ -106,8 +106,8 @@ public abstract class TileWirelessBus extends TileEntity implements IGridProxyab
 
     @Override
     @ParametersAreNonnullByDefault
-    public void read(final BlockState state, final CompoundNBT compound) {
-        super.read(state, compound);
+    public void load(final BlockState state, final CompoundNBT compound) {
+        super.load(state, compound);
         proxy.readFromNBT(compound);
         if (!compound.contains("validSides")) return;
 
@@ -123,17 +123,16 @@ public abstract class TileWirelessBus extends TileEntity implements IGridProxyab
 
     @Override
     public void tick() {
-        if (Objects.isNull(world) || world.isRemote) return;
+        if (Objects.isNull(level) || level.isClientSide) return;
         final boolean active = proxy.isActive();
 
-        final BlockState currentBlockState = world.getBlockState(pos);
-        final Boolean value = currentBlockState.get(BlockBaseWirelessBus.POWERED);
+        final BlockState currentBlockState = level.getBlockState(worldPosition);
+        final Boolean value = currentBlockState.getValue(BlockBaseWirelessBus.POWERED);
 
         if (active != value) {
-            final BlockState newBlockState = currentBlockState.with(BlockBaseWirelessBus.POWERED, active);
-            world.setBlockState(pos, newBlockState, 3);
+            final BlockState newBlockState = currentBlockState.setValue(BlockBaseWirelessBus.POWERED, active);
+            level.setBlock(worldPosition, newBlockState, 3);
         }
     }
-
 
 }

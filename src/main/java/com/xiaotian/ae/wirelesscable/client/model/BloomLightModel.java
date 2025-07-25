@@ -53,7 +53,7 @@ public class BloomLightModel implements IBakedModel {
     }
 
     public static BakedQuad makeFullBrightQuad(BakedQuad quad) {
-        int[] originalData = quad.getVertexData();
+        int[] originalData = quad.getVertices();
         int[] newData = originalData.clone();
 
         int vertexCount = 4;
@@ -63,11 +63,10 @@ public class BloomLightModel implements IBakedModel {
         int maxBlockLight = 15;
         int maxSkyLight = 15;
         int packedLight = (maxBlockLight & 0xF) | ((maxSkyLight & 0xF) << 4);
-        packedLight |= packedLight << 8;
-        packedLight |= packedLight << 16;
+
 
         // 光照坐标的偏移（float，两个int）一般是第6和7个int
-        int lightmapUOffset = 6;
+        int lightmapUOffset = 4;
 
         for (int vertex = 0; vertex < vertexCount; vertex++) {
             int baseIndex = vertex * intsPerVertex;
@@ -77,12 +76,7 @@ public class BloomLightModel implements IBakedModel {
             newData[baseIndex + lightmapUOffset + 1] = 0;
         }
 
-        return new BakedQuad(newData, quad.getTintIndex(), quad.getFace(), quad.getSprite(), quad.applyDiffuseLighting());
-    }
-
-    @Override
-    public boolean isAmbientOcclusion() {
-        return base.isAmbientOcclusion();
+        return new BakedQuad(newData, quad.getTintIndex(), quad.getDirection(), quad.getSprite(), quad.isShade());
     }
 
     @Override
@@ -91,18 +85,23 @@ public class BloomLightModel implements IBakedModel {
     }
 
     @Override
-    public boolean isBuiltInRenderer() {
-        return base.isBuiltInRenderer();
+    public boolean useAmbientOcclusion() {
+        return false;
     }
 
     @Override
-    public TextureAtlasSprite getParticleTexture() {
-        return base.getParticleTexture();
+    public boolean usesBlockLight() {
+        return false;
     }
 
     @Override
-    public boolean isSideLit() {
-        return base.isSideLit();
+    public boolean isCustomRenderer() {
+        return false;
+    }
+
+    @Override
+    public TextureAtlasSprite getParticleIcon() {
+        return base.getParticleIcon();
     }
 
     @Override

@@ -36,6 +36,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 
 @SuppressWarnings("deprecation")
 @MethodsReturnNonnullByDefault
@@ -47,33 +48,32 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
 
     private static final Tags.IOptionalNamedTag<Item> WRENCH_TAG = ItemTags.createOptional(new ResourceLocation("appliedenergistics2", "quartz_wrench"));
 
-    public BlockBaseWirelessBus(final AbstractBlock.Properties properties) {
+    public BlockBaseWirelessBus(final Properties properties) {
         super(properties);
-        this.setDefaultState(this.getStateContainer().getBaseState()
-                .with(FACING, Direction.NORTH)
-                .with(POWERED, false));
+        this.defaultBlockState().setValue(FACING, Direction.NORTH)
+                .setValue(POWERED, Boolean.FALSE);
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(final StateContainer.Builder<Block, BlockState> builder) {
         builder.add(FACING, POWERED);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.getDefaultState().with(FACING, context.getFace());
+        return this.defaultBlockState().setValue(FACING, context.getClickedFace());
     }
 
     @Override
-    public void onBlockPlacedBy(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        super.onBlockPlacedBy(world, pos, state, placer, stack);
-        if (!world.isRemote) {
+    public void setPlacedBy(final World world, final BlockPos pos, final BlockState state, @Nullable final LivingEntity placer, final ItemStack stack) {
+        super.setPlacedBy(world, pos, state, placer, stack);
+        if (!world.isClientSide) {
             Block block = world.getBlockState(pos).getBlock();
-            TileEntity tileEntity = world.getTileEntity(pos);
-            if (tileEntity == null) return;
+            TileEntity tileEntity = world.getBlockEntity(pos);
+            if (Objects.isNull(tileEntity)) return;
 
             if (block instanceof ITileWithWireless) {
-                ITileWithWireless iTileWithWireless = (ITileWithWireless) tileEntity;
+                ITileWithWireless iTileWithWireless = (ITileWithWireless) block;
                 if (iTileWithWireless.needInitTagFromItemStack()) {
                     CompoundNBT tag = stack.getTag();
                     if (tag != null) {
@@ -86,28 +86,26 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
                 TileWirelessBus tileWirelessBus = (TileWirelessBus) tileEntity;
                 AENetworkProxy proxy = tileWirelessBus.getProxy();
                 proxy.setOwner((PlayerEntity) placer);
-                proxy.setValidSides(EnumSet.of(state.get(FACING).getOpposite()));
+                proxy.setValidSides(EnumSet.of(state.getValue(FACING).getOpposite()));
             }
         }
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos,
-                                             PlayerEntity player, Hand hand, BlockRayTraceResult hit) {
-
+    public ActionResultType use(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
         if (actionWithConnectionCard(world, pos, player, hand)) return ActionResultType.SUCCESS;
-        ItemStack heldItem = player.getHeldItem(hand);
+        ItemStack heldItem = player.getItemInHand(hand);
         if (heldItem.isEmpty()) return ActionResultType.PASS;
         final Item item = heldItem.getItem();
-        if (!item.isIn(WRENCH_TAG)) return ActionResultType.PASS;
+        if (!item.is(WRENCH_TAG)) return ActionResultType.PASS;
 
-        if (world.isRemote) return ActionResultType.SUCCESS;
-        if (!player.isSneaking()) return ActionResultType.FAIL;
+        if (world.isClientSide) return ActionResultType.SUCCESS;
+        if (!player.isCrouching()) return ActionResultType.FAIL;
 
-        TileEntity tile = world.getTileEntity(pos);
+        TileEntity tile = world.getBlockEntity(pos);
         if (tile == null) return ActionResultType.FAIL;
 
-        CompoundNBT nbt = tile.write(new CompoundNBT());
+        CompoundNBT nbt = tile.save(new CompoundNBT());
         ItemStack itemStack = new ItemStack(tile.getBlockState().getBlock());
         itemStack.setTag(nbt);
 
@@ -117,14 +115,15 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
                 pos.getY() + 0.5,
                 pos.getZ() + 0.5,
                 itemStack);
-        entityItem.setDefaultPickupDelay();
-        world.addEntity(entityItem);
+        entityItem.setDefaultPickUpDelay();
+        world.addFreshEntity(entityItem);
         return ActionResultType.SUCCESS;
     }
 
+
     @Override
     public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
-        return this.rotateAABB(state.get(FACING));
+        return this.rotateAABB(state.getValue(FACING));
     }
 
     @Override

@@ -1,10 +1,10 @@
 {
   "itemGroup.aewirelesschannel": "AE 无线频道",
 
-  "tile.aewirelesschannel.wireless_output_bus": "ME无线频道输出总线",
-  "tile.aewirelesschannel.dense_wireless_output_bus": "ME致密无线频道输出总线",
-  "tile.aewirelesschannel.wireless_input_bus": "ME无线频道输入总线",
-  "tile.aewirelesschannel.dense_wireless_input_bus": "ME致密无线频道输入总线",
+  "block.aewirelesschannel.block_wireless_output_bus": "ME无线频道输出总线",
+  "block.aewirelesschannel.block_dense_wireless_output_bus": "ME致密无线频道输出总线",
+  "block.aewirelesschannel.block_wireless_input_bus": "ME无线频道输入总线",
+  "block.aewirelesschannel.block_dense_wireless_input_bus": "ME致密无线频道输入总线",
 
   "item.aewirelesschannel.item_wireless_key_card": "ME无线频道连接卡",
 

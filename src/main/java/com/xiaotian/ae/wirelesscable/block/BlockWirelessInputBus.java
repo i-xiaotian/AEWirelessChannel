@@ -37,7 +37,7 @@ public class BlockWirelessInputBus extends BlockBaseWirelessBus implements ITile
     private static final AxisAlignedBB BOUNDING_BOX = new AxisAlignedBB(0.25, 0.0, 0.25, 0.75, 0.875, 0.75);
 
     public BlockWirelessInputBus() {
-        super(AbstractBlock.Properties.create(Material.GLASS));
+        super(Properties.of(Material.GLASS));
     }
 
     @Override
@@ -75,15 +75,15 @@ public class BlockWirelessInputBus extends BlockBaseWirelessBus implements ITile
     @Override
     @ParametersAreNonnullByDefault
     protected boolean actionWithConnectionCard(final World worldIn, final BlockPos pos, final PlayerEntity playerIn, final Hand hand) {
-        final ItemStack heldItem = playerIn.getHeldItem(hand);
+        final ItemStack heldItem = playerIn.getItemInHand(hand);
         final Item item = heldItem.getItem();
         if (item != Items.ITEM_WIRELESS_KEY_CARD) return false;
-        if (playerIn.isSneaking()) return false;
-        if (worldIn.isRemote) return true;
+        if (playerIn.isCrouching()) return false;
+        if (worldIn.isClientSide) return true;
 
         final CompoundNBT tagCompound = heldItem.getTag();
         if (Objects.isNull(tagCompound)) {
-            playerIn.sendMessage(new StringTextComponent(I18n.format("message.aewirelesschannel.not_bound")), playerIn.getUniqueID());
+            playerIn.sendMessage(new StringTextComponent(I18n.get("message.aewirelesschannel.not_bound")), playerIn.getUUID());
             return false;
         }
         final CompoundNBT outputBusBound = tagCompound.getCompound("outputBusBound");
@@ -91,13 +91,13 @@ public class BlockWirelessInputBus extends BlockBaseWirelessBus implements ITile
         final int boundY = outputBusBound.getInt("boundY");
         final int boundZ = outputBusBound.getInt("boundZ");
         final BlockPos blockPos = new BlockPos(boundX, boundY, boundZ);
-        final TileEntity tileEntity = worldIn.getTileEntity(blockPos);
+        final TileEntity tileEntity = worldIn.getBlockEntity(blockPos);
         if (Objects.isNull(tileEntity)) {
-            playerIn.sendMessage(new StringTextComponent(I18n.format("message.aewirelesschannel.not_bound")), playerIn.getUniqueID());
+            playerIn.sendMessage(new StringTextComponent(I18n.get("message.aewirelesschannel.not_bound")), playerIn.getUUID());
             return false;
         }
         if (!(tileEntity instanceof TileWirelessOutputBus)) {
-            playerIn.sendMessage(new StringTextComponent(I18n.format("message.aewirelesschannel.bound_type_error")), playerIn.getUniqueID());
+            playerIn.sendMessage(new StringTextComponent(I18n.get("message.aewirelesschannel.bound_type_error")), playerIn.getUUID());
             return false;
         }
         TileWirelessOutputBus tileWirelessOutputBus = (TileWirelessOutputBus) tileEntity;
@@ -105,13 +105,13 @@ public class BlockWirelessInputBus extends BlockBaseWirelessBus implements ITile
         final IGrid grid = actionableNode.getGrid();
         ISecurityGrid securityGrid = grid.getCache(ISecurityGrid.class);
         if (!securityGrid.hasPermission(playerIn, SecurityPermissions.BUILD)) {
-            playerIn.sendMessage(new StringTextComponent(I18n.format("message.aewirelesschannel.no_permission")), playerIn.getUniqueID());
+            playerIn.sendMessage(new StringTextComponent(I18n.get("message.aewirelesschannel.no_permission")), playerIn.getUUID());
             return false;
         }
 
-        final TileEntity inputBus = worldIn.getTileEntity(pos);
+        final TileEntity inputBus = worldIn.getBlockEntity(pos);
         if (!(inputBus instanceof TileWirelessInputBus)) {
-            playerIn.sendMessage(new StringTextComponent(I18n.format("message.aewirelesschannel.bound_type_error_input")), playerIn.getUniqueID());
+            playerIn.sendMessage(new StringTextComponent(I18n.get("message.aewirelesschannel.bound_type_error_input")), playerIn.getUUID());
             return false;
         }
         TileWirelessInputBus tileWirelessInputBus = (TileWirelessInputBus) inputBus;
@@ -119,7 +119,7 @@ public class BlockWirelessInputBus extends BlockBaseWirelessBus implements ITile
         final boolean connect = currentConnection.isConnect();
         if (connect) {
             tileWirelessInputBus.onChunkUnloaded();
-            tileWirelessInputBus.validate();
+            tileWirelessInputBus.onLoad();
         }
         currentConnection.setConnect(true);
         currentConnection.setNeedUpdateGridNode(true);
@@ -127,7 +127,7 @@ public class BlockWirelessInputBus extends BlockBaseWirelessBus implements ITile
         currentConnection.setOutputBusY(boundY);
         currentConnection.setOutputBusZ(boundZ);
 
-        playerIn.sendMessage(new StringTextComponent(I18n.format("message.aewirelesschannel.bound_in_put_bus")), playerIn.getUniqueID());
+        playerIn.sendMessage(new StringTextComponent(I18n.get("message.aewirelesschannel.bound_in_put_bus")), playerIn.getUUID());
         return true;
 
     }

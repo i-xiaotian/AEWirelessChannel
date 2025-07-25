@@ -21,7 +21,7 @@ import java.util.Set;
 
 public class TileWirelessOutputBus extends TileWirelessBus implements ITickableTileEntity {
 
-    private Map<String, ConnectionInfo> subGridConnectionMap;
+    private final Map<String, ConnectionInfo> subGridConnectionMap;
 
     public TileWirelessOutputBus() {
         super(TileEntityTypes.TILE_WIRELESS_OUTPUT_BUS);
@@ -30,6 +30,7 @@ public class TileWirelessOutputBus extends TileWirelessBus implements ITickableT
 
     public TileWirelessOutputBus(TileEntityType<?> type) {
         super(type);
+        subGridConnectionMap = new HashMap<>();
     }
 
     public void addConnectionInfo(@Nonnull final ConnectionInfo info) {
@@ -51,8 +52,8 @@ public class TileWirelessOutputBus extends TileWirelessBus implements ITickableT
 
     @Nonnull
     @Override
-    public CompoundNBT write(@Nonnull final CompoundNBT compound) {
-        final CompoundNBT nbtTagCompound = super.write(compound);
+    public CompoundNBT save(@Nonnull final CompoundNBT compound) {
+        final CompoundNBT nbtTagCompound = super.save(compound);
         if (subGridConnectionMap.isEmpty()) return nbtTagCompound;
 
         final CompoundNBT connectionInfoTag = new CompoundNBT();
@@ -82,15 +83,15 @@ public class TileWirelessOutputBus extends TileWirelessBus implements ITickableT
 
     @Override
     @ParametersAreNonnullByDefault
-    public void read(final BlockState state, final CompoundNBT compound) {
-        super.read(state, compound);
+    public void load(final BlockState state, final CompoundNBT compound) {
+        super.load(state, compound);
         initConnectionMap(compound, this);
     }
 
     public void initConnectionMap(final CompoundNBT compound, final TileWirelessOutputBus wirelessOutputBus) {
         if (!compound.contains("connectionInfoTag")) return;
         final CompoundNBT connectionInfoTag = compound.getCompound("connectionInfoTag");
-        final Set<String> subNodeKeySet = connectionInfoTag.keySet();
+        final Set<String> subNodeKeySet = connectionInfoTag.getAllKeys();
         for (String setKey : subNodeKeySet) {
             final CompoundNBT subNodeTag = connectionInfoTag.getCompound(setKey);
             final String connectionKey = subNodeTag.getString("connectionKey");
@@ -113,9 +114,9 @@ public class TileWirelessOutputBus extends TileWirelessBus implements ITickableT
 
     @Override
     public void tick() {
-        if (Objects.isNull(world)) return;
-        if (world.isRemote) return;
-        if (world.getGameTime() % 20 != 0) return;
+        if (Objects.isNull(level)) return;
+        if (level.isClientSide) return;
+        if (level.getGameTime() % 20 != 0) return;
         super.tick();
     }
 
@@ -126,14 +127,14 @@ public class TileWirelessOutputBus extends TileWirelessBus implements ITickableT
     }
 
     public void loadWirelessInfo(final TileWirelessOutputBus wirelessOutputBus) {
-        final World world = wirelessOutputBus.getWorld();
+        final World world = wirelessOutputBus.getLevel();
         if (Objects.isNull(world)) return;
-        final BlockPos pos = wirelessOutputBus.getPos();
+        final BlockPos pos = wirelessOutputBus.getBlockPos();
 
         final Set<String> connectionKeySet = subGridConnectionMap.keySet();
         for (String connectionKey : connectionKeySet) {
             final BlockPos busPosInfo = getConnectionInputBusPosInfo(connectionKey);
-            final TileEntity inputTileEntity = world.getTileEntity(busPosInfo);
+            final TileEntity inputTileEntity = world.getBlockEntity(busPosInfo);
             if (Objects.isNull(inputTileEntity)) continue;
             if (!(inputTileEntity instanceof TileWirelessInputBus)) continue;
             TileWirelessInputBus wirelessInputBus = (TileWirelessInputBus) inputTileEntity;

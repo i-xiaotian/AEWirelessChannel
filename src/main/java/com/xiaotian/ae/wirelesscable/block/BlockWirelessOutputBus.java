@@ -30,7 +30,7 @@ public class BlockWirelessOutputBus extends BlockBaseWirelessBus implements ITil
     private static final AxisAlignedBB BOUNDING_BOX = new AxisAlignedBB(0.25, 0.0, 0.25, 0.75, 0.875, 0.75);
 
     public BlockWirelessOutputBus() {
-        super(AbstractBlock.Properties.create(Material.GLASS));
+        super(Properties.of(Material.GLASS));
     }
 
     @Override
@@ -74,16 +74,16 @@ public class BlockWirelessOutputBus extends BlockBaseWirelessBus implements ITil
     @Override
     @ParametersAreNonnullByDefault
     protected boolean actionWithConnectionCard(final World worldIn, final BlockPos pos, final PlayerEntity playerIn, final Hand hand) {
-        final ItemStack heldItem = playerIn.getHeldItem(hand);
+        final ItemStack heldItem = playerIn.getItemInHand(hand);
         final Item item = heldItem.getItem();
         if (item != Items.ITEM_WIRELESS_KEY_CARD) return false;
-        if (playerIn.isSneaking()) return false;
-        if (worldIn.isRemote) return true;
+        if (playerIn.isCrouching()) return false;
+        if (worldIn.isClientSide) return true;
 
         final CompoundNBT outputBusBound = writeOutputBusInfoTag(worldIn, pos);
         heldItem.setTag(outputBusBound);
 
-        playerIn.sendMessage(new StringTextComponent(I18n.format("message.aewirelesschannel.bound_out_put_bus")), playerIn.getUniqueID());
+        playerIn.sendMessage(new StringTextComponent(I18n.get("message.aewirelesschannel.bound_out_put_bus")), playerIn.getUUID());
         return true;
     }
 
@@ -91,7 +91,7 @@ public class BlockWirelessOutputBus extends BlockBaseWirelessBus implements ITil
         final int x = pos.getX();
         final int y = pos.getY();
         final int z = pos.getZ();
-        final String dimension = worldIn.getDimensionKey().getRegistryName().getNamespace();
+        final String dimension = worldIn.dimension().getRegistryName().getNamespace();
         final CompoundNBT outputBusBound = new CompoundNBT();
         final CompoundNBT outputBusPosNbt = new CompoundNBT();
         outputBusPosNbt.putInt("boundX", x);

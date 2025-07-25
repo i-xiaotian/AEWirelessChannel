@@ -14,19 +14,19 @@ import java.util.Objects;
 public class ItemWirelessKeyCard extends ItemBase {
 
     public ItemWirelessKeyCard() {
-        super(new Properties().maxStackSize(1));
+        super(new Properties().stacksTo(1));
     }
 
     @Override
     @ParametersAreNonnullByDefault
     public void addTooltips(final ItemStack stack, final List<ITextComponent> tooltips) {
-        tooltips.add(new StringTextComponent(TextFormatting.GRAY + I18n.format("tooltip.aewirelesschannel.item_wireless_key_card.output")));
-        tooltips.add(new StringTextComponent(TextFormatting.GRAY + I18n.format("tooltip.aewirelesschannel.item_wireless_key_card.input")));
+        tooltips.add(new StringTextComponent(TextFormatting.GRAY + I18n.get("tooltip.aewirelesschannel.item_wireless_key_card.output")));
+        tooltips.add(new StringTextComponent(TextFormatting.GRAY + I18n.get("tooltip.aewirelesschannel.item_wireless_key_card.input")));
 
         final CompoundNBT tagCompound = stack.getTag();
         if (Objects.isNull(tagCompound)) return;
         if (!tagCompound.contains("outputBusBound")) {
-            tooltips.add(new StringTextComponent(TextFormatting.RED + I18n.format("tooltip.aewirelesschannel.item_wireless_key_card.not_bound")));
+            tooltips.add(new StringTextComponent(TextFormatting.RED + I18n.get("tooltip.aewirelesschannel.item_wireless_key_card.not_bound")));
             return;
         }
 
@@ -35,6 +35,6 @@ public class ItemWirelessKeyCard extends ItemBase {
         final int boundY = outputBusBound.getInt("boundY");
         final int boundZ = outputBusBound.getInt("boundZ");
         final String dimension = outputBusBound.getString("dimension");
-        tooltips.add(new StringTextComponent(I18n.format("tooltip.aewirelesschannel.item_wireless_key_card.bound_info", boundX, boundY, boundZ, dimension)));
+        tooltips.add(new StringTextComponent(I18n.get("tooltip.aewirelesschannel.item_wireless_key_card.bound_info", boundX, boundY, boundZ, dimension)));
     }
 }

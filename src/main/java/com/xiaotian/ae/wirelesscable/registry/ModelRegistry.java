@@ -49,7 +49,7 @@ public class ModelRegistry {
             if (Objects.isNull(registryName)) continue;
             final String blockName = registryName.toString();
             for (Direction facing : Direction.values()) {
-                String variant = String.format("facing=%s,powered=true", facing.getString());
+                String variant = String.format("facing=%s,powered=true", facing.getName());
                 ModelResourceLocation modelResLoc = new ModelResourceLocation(blockName, variant);
                 IBakedModel base = event.getModelRegistry().get(modelResLoc);
                 if (base != null) {

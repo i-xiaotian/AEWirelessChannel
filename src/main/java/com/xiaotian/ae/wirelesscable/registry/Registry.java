@@ -5,18 +5,17 @@ import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import com.xiaotian.ae.wirelesscable.block.IBlockBase;
 import com.xiaotian.ae.wirelesscable.block.IBloomTexture;
 import net.minecraft.block.Block;
-import net.minecraft.client.renderer.model.ModelResourceLocation;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.event.ModelRegistryEvent;
-import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -24,28 +23,31 @@ import java.util.function.Supplier;
 
 import static com.xiaotian.ae.wirelesscable.AEWirelessChannel.log;
 
-@Mod.EventBusSubscriber(modid = AEWirelessChannel.MOD_ID)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = {Dist.CLIENT, Dist.DEDICATED_SERVER}, modid = AEWirelessChannel.MOD_ID)
 public class Registry {
 
     public static final List<Block> BLOCK_LIST = new ArrayList<>();
     public static final List<TileEntityType<?>> TILE_LIST = new ArrayList<>();
     public static final List<Item> ITEM_LIST = new ArrayList<>();
 
-    public static <T extends Block> T registerBlock(String name, T block) {
+    @Nonnull
+    public static <T extends Block> T registerBlock(String name, @Nonnull T block) {
         block.setRegistryName(new ResourceLocation(AEWirelessChannel.MOD_ID, name));
         BLOCK_LIST.add(block);
         return block;
     }
 
-    public static <T extends Item> T registerItem(String name, T item) {
+    @Nonnull
+    public static <T extends Item> T registerItem(String name, @Nonnull T item) {
         item.setRegistryName(new ResourceLocation(AEWirelessChannel.MOD_ID, name));
         ITEM_LIST.add(item);
         return item;
     }
 
+    @Nonnull
     public static <T extends TileEntity> TileEntityType<T> createType(String registryName, Supplier<T> factory, Block... validBlocks) {
         TileEntityType<T> type = TileEntityType.Builder
-                .create(factory, validBlocks)
+                .of(factory, validBlocks)
                 .build(DSL.remainderType());
         type.setRegistryName(registryName);
         TILE_LIST.add(type);
@@ -62,7 +64,7 @@ public class Registry {
     }
 
     @SubscribeEvent
-    public static void onRegisterTileEntities(RegistryEvent.Register<TileEntityType<?>> event) {
+    public static void onRegisterTileEntities(@Nonnull RegistryEvent.Register<TileEntityType<?>> event) {
         event.getRegistry().registerAll(TILE_LIST.toArray(new TileEntityType[0]));
     }
 

@@ -1,10 +1,10 @@
 {
   "itemGroup.aewirelesschannel": "AE Wireless Channel",
 
-  "tile.aewirelesschannel.wireless_output_bus": "ME channel output bus",
-  "tile.aewirelesschannel.dense_wireless_output_bus": "ME dense channel output bus",
-  "tile.aewirelesschannel.wireless_input_bus": "ME channel input bus",
-  "tile.aewirelesschannel.dense_wireless_input_bus": "ME dense channel input bus",
+  "block.aewirelesschannel.block_wireless_output_bus": "ME channel output bus",
+  "block.aewirelesschannel.block_dense_wireless_output_bus": "ME dense channel output bus",
+  "block.aewirelesschannel.block_wireless_input_bus": "ME channel input bus",
+  "block.aewirelesschannel.block_dense_wireless_input_bus": "ME dense channel input bus",
 
   "item.aewirelesschannel.item_wireless_key_card": "ME wireless channel connection card",
 

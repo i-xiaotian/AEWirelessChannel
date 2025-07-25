@@ -14,7 +14,7 @@ public final class TooltipUtils {
     public static void addMultiLine(final List<ITextComponent> tooltip, final String i18nKeyPrefix) {
         for (int i = 0; i < 100; i++) {
             final String key = i18nKeyPrefix + i;
-            final String format = I18n.format(key);
+            final String format = I18n.get(key);
             if (StringUtils.equals(format, key)) break;
             tooltip.add(new StringTextComponent(format));
         }

@@ -14,7 +14,8 @@ public class AEWirelessItemGroup extends ItemGroup {
 
     @Override
     @Nonnull
-    public ItemStack createIcon() {
+    public ItemStack makeIcon() {
         return new ItemStack(Blocks.DENSE_WIRELESS_OUTPUT_BUS);
     }
+
 }

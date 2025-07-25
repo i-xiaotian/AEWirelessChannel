@@ -1,4 +1,4 @@
-//package com.xiaotian.ae.wirelesscable.chunk;
+package com.xiaotian.ae.wirelesscable.chunk;//package com.xiaotian.ae.wirelesscable.chunk;
 //
 //import com.google.common.collect.ImmutableSet;
 //import net.minecraft.util.math.ChunkPos;

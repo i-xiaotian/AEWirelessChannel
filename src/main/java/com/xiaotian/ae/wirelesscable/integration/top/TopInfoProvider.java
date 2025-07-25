@@ -35,7 +35,7 @@ public class TopInfoProvider implements IProbeInfoProvider {
         if (!blockState.getBlock().hasTileEntity(blockState)) return;
 
         final BlockPos pos = iProbeHitData.getPos();
-        final TileEntity tileEntity = world.getTileEntity(pos);
+        final TileEntity tileEntity = world.getBlockEntity(pos);
         if (Objects.isNull(tileEntity)) return;
         if (!(tileEntity instanceof TileWirelessBus)) return;
         TileWirelessBus tileWirelessBus = (TileWirelessBus) tileEntity;
@@ -45,7 +45,7 @@ public class TopInfoProvider implements IProbeInfoProvider {
         final String onlineInfo = active ? "{*top.aewirelesschannel.device_online*}" : "{*top.aewirelesschannel.device_offline*}";
         final TextFormatting color = active ? TextFormatting.WHITE : TextFormatting.GRAY;
         iProbeInfo.text(color + onlineInfo);
-        if (AEWirelessChannelConfig.CLIENT.topConnectionInfoShowType.get() && !playerEntity.isSneaking()) return;
+        if (AEWirelessChannelConfig.CLIENT.topConnectionInfoShowType.get() && !playerEntity.isCrouching()) return;
 
         if (tileWirelessBus instanceof TileWirelessInputBus) {
             TileWirelessInputBus wirelessInputBus = (TileWirelessInputBus) tileWirelessBus;
@@ -71,8 +71,8 @@ public class TopInfoProvider implements IProbeInfoProvider {
         final IProbeInfo info = getVertical(vertical);
         final IProbeInfo connectionKeyInfo = info.horizontal();
         final IProbeInfo connectionInfo = info.horizontal();
-        connectionKeyInfo.text(I18n.format("top.aewirelesschannel.wireless_bus_connection_info", connectionKey));
-        connectionInfo.text(I18n.format("top.aewirelesschannel.wireless_input_bus_connection_info", outputBusX, outputBusY, outputBusZ));
+        connectionKeyInfo.text(I18n.get("top.aewirelesschannel.wireless_bus_connection_info", connectionKey));
+        connectionInfo.text(I18n.get("top.aewirelesschannel.wireless_input_bus_connection_info", outputBusX, outputBusY, outputBusZ));
     }
 
     private static void showOutputBusTopInfo(final IProbeInfo iProbeInfo, final TileWirelessOutputBus wirelessOutputBus) {
@@ -89,8 +89,8 @@ public class TopInfoProvider implements IProbeInfoProvider {
             final IProbeInfo connectionInfo = info.horizontal();
 
             final ConnectionInfo inputBusConnectionInfo = gridConnectionMap.get(connectionKey);
-            connectionKeyInfo.text(I18n.format("top.aewirelesschannel.wireless_bus_connection_info", connectionKey));
-            connectionInfo.text(I18n.format("top.aewirelesschannel.wireless_output_bus_connection_info", inputBusConnectionInfo.getInputBusX(), inputBusConnectionInfo.getInputBusY(), inputBusConnectionInfo.getInputBusZ()));
+            connectionKeyInfo.text(I18n.get("top.aewirelesschannel.wireless_bus_connection_info", connectionKey));
+            connectionInfo.text(I18n.get("top.aewirelesschannel.wireless_output_bus_connection_info", inputBusConnectionInfo.getInputBusX(), inputBusConnectionInfo.getInputBusY(), inputBusConnectionInfo.getInputBusZ()));
             showCount++;
             final Integer topInfoCount = AEWirelessChannelConfig.CLIENT.topConnectionInfoShowCount.get();
             if (showCount >= topInfoCount) {
@@ -98,7 +98,7 @@ public class TopInfoProvider implements IProbeInfoProvider {
                 final int remainingCount = size - topInfoCount;
                 final IProbeInfo moreThanInfoV = getVertical(vertical);
                 final IProbeInfo moreThanInfoH = moreThanInfoV.horizontal();
-                moreThanInfoH.text(I18n.format("top.aewirelesschannel.wireless_bus_connection_info_more_than", remainingCount));
+                moreThanInfoH.text(I18n.get("top.aewirelesschannel.wireless_bus_connection_info_more_than", remainingCount));
                 break;
             }
         }

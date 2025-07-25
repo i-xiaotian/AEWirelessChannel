@@ -6,7 +6,6 @@ import appeng.api.util.AEPartLocation;
 import com.xiaotian.ae.wirelesscable.registry.Blocks;
 import com.xiaotian.ae.wirelesscable.registry.TileEntityTypes;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntityType;
 
 import javax.annotation.Nonnull;
 
