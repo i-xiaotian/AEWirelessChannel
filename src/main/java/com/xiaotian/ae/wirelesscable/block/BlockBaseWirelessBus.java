@@ -62,7 +62,7 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
         return this.defaultBlockState().setValue(FACING, context.getClickedFace())
-                .setValue(POWERED, false);
+                .setValue(POWERED, Boolean.FALSE);
     }
 
     @Override
