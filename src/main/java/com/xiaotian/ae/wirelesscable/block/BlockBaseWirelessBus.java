@@ -61,7 +61,8 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
 
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        return this.defaultBlockState().setValue(FACING, context.getClickedFace());
+        return this.defaultBlockState().setValue(FACING, context.getClickedFace())
+                .setValue(POWERED, false);
     }
 
     @Override
@@ -90,6 +91,7 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
             }
         }
     }
+
 
     @Override
     public ActionResultType use(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {

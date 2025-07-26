@@ -42,7 +42,7 @@ public class BloomLightModel implements IBakedModel {
                 BakedQuad brightQuad = cache.get(quad);
                 if (Objects.isNull(brightQuad)) {
                     brightQuad = makeFullBrightQuad(quad);
-                    cache.put(quad, brightQuad);
+//                    cache.put(quad, brightQuad);
                 }
                 quads.add(brightQuad);
             } else {
@@ -53,30 +53,21 @@ public class BloomLightModel implements IBakedModel {
     }
 
     public static BakedQuad makeFullBrightQuad(BakedQuad quad) {
-        int[] originalData = quad.getVertices();
-        int[] newData = originalData.clone();
+        int[] vertexData = quad.getVertices().clone();
+        int step = vertexData.length / 4;
 
-        int vertexCount = 4;
-        int intsPerVertex = originalData.length / vertexCount;
+        vertexData[6] = 0x00F000F0;
+        vertexData[6 + step] = 0x00F000F0;
+        vertexData[6 + 2 * step] = 0x00F000F0;
+        vertexData[6 + 3 * step] = 0x00F000F0;
 
-        // 自己打包最大光照，天空和区块光都是15
-        int maxBlockLight = 15;
-        int maxSkyLight = 15;
-        int packedLight = (maxBlockLight & 0xF) | ((maxSkyLight & 0xF) << 4);
-
-
-        // 光照坐标的偏移（float，两个int）一般是第6和7个int
-        int lightmapUOffset = 4;
-
-        for (int vertex = 0; vertex < vertexCount; vertex++) {
-            int baseIndex = vertex * intsPerVertex;
-
-            // 写入最大光照，先转float再写入int数组
-            newData[baseIndex + lightmapUOffset] = Float.floatToRawIntBits((float) packedLight);
-            newData[baseIndex + lightmapUOffset + 1] = 0;
-        }
-
-        return new BakedQuad(newData, quad.getTintIndex(), quad.getDirection(), quad.getSprite(), quad.isShade());
+        return new BakedQuad(
+                vertexData,
+                quad.getTintIndex(),
+                quad.getDirection(),
+                quad.getSprite(),
+                true
+        );
     }
 
     @Override
@@ -91,12 +82,12 @@ public class BloomLightModel implements IBakedModel {
 
     @Override
     public boolean usesBlockLight() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isCustomRenderer() {
-        return false;
+        return true;
     }
 
     @Override

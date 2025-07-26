@@ -42,7 +42,7 @@ public class TopInfoProvider implements IProbeInfoProvider {
 
         final AENetworkProxy proxy = tileWirelessBus.getProxy();
         final boolean active = proxy.isActive();
-        final String onlineInfo = active ? "{*top.aewirelesschannel.device_online*}" : "{*top.aewirelesschannel.device_offline*}";
+        final String onlineInfo = active ? I18n.get("top.aewirelesschannel.device_online") : I18n.get("top.aewirelesschannel.device_offline");
         final TextFormatting color = active ? TextFormatting.WHITE : TextFormatting.GRAY;
         iProbeInfo.text(color + onlineInfo);
         if (AEWirelessChannelConfig.CLIENT.topConnectionInfoShowType.get() && !playerEntity.isCrouching()) return;
@@ -67,7 +67,7 @@ public class TopInfoProvider implements IProbeInfoProvider {
         final String connectionKey = currentConnection.getConnectionKey();
         final IProbeInfo vertical = getVertical(iProbeInfo);
         final IProbeInfo horizontal = vertical.horizontal();
-        horizontal.text("{*top.aewirelesschannel.wireless_bus_connection_info_header*}");
+        horizontal.text(I18n.get("top.aewirelesschannel.wireless_bus_connection_info_header"));
         final IProbeInfo info = getVertical(vertical);
         final IProbeInfo connectionKeyInfo = info.horizontal();
         final IProbeInfo connectionInfo = info.horizontal();
@@ -81,7 +81,7 @@ public class TopInfoProvider implements IProbeInfoProvider {
         final Set<String> keySet = gridConnectionMap.keySet();
         final IProbeInfo vertical = getVertical(iProbeInfo);
         final IProbeInfo horizontal = vertical.horizontal();
-        horizontal.text("{*top.aewirelesschannel.wireless_bus_connection_info_header*}");
+        horizontal.text(I18n.get("top.aewirelesschannel.wireless_bus_connection_info_header"));
         int showCount = 0;
         for (String connectionKey : keySet) {
             final IProbeInfo info = getVertical(vertical);
