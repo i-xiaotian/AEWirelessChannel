@@ -31,13 +31,15 @@ public class BloomLightModel implements IBakedModel {
     public List<BakedQuad> getQuads(@Nullable final BlockState state, @Nullable final Direction side, @Nonnull final Random rand) {
         if (Objects.isNull(state)) return Collections.emptyList();
         List<BakedQuad> originalQuads = base.getQuads(state, side, rand);
+        if (originalQuads.isEmpty()) return originalQuads;
+
         final Block block = state.getBlock();
         if (!(block instanceof IBloomTexture)) return originalQuads;
         List<BakedQuad> quads = new ArrayList<>(originalQuads.size());
 
         IBloomTexture iBloomTexture = (IBloomTexture) block;
         for (BakedQuad quad : originalQuads) {
-            String name = quad.getSprite().getName().getNamespace();
+            String name = quad.getSprite().getName().getPath();
             if (name.endsWith(iBloomTexture.getBloomTextureEndWith())) {
                 BakedQuad brightQuad = cache.get(quad);
                 if (Objects.isNull(brightQuad)) {

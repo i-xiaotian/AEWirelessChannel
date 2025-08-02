@@ -3,7 +3,6 @@ package com.xiaotian.ae.wirelesscable.block;
 import appeng.me.helpers.AENetworkProxy;
 import com.xiaotian.ae.wirelesscable.tile.TileWirelessBus;
 import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
@@ -46,7 +45,7 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
     private static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.values());
     public static final BooleanProperty POWERED = BooleanProperty.create("powered");
 
-    private static final Tags.IOptionalNamedTag<Item> WRENCH_TAG = ItemTags.createOptional(new ResourceLocation("appliedenergistics2", "quartz_wrench"));
+
 
     public BlockBaseWirelessBus(final Properties properties) {
         super(properties);
@@ -96,30 +95,7 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
     @Override
     public ActionResultType use(final BlockState state, final World world, final BlockPos pos, final PlayerEntity player, final Hand hand, final BlockRayTraceResult hit) {
         if (actionWithConnectionCard(world, pos, player, hand)) return ActionResultType.SUCCESS;
-        ItemStack heldItem = player.getItemInHand(hand);
-        if (heldItem.isEmpty()) return ActionResultType.PASS;
-        final Item item = heldItem.getItem();
-        if (!item.is(WRENCH_TAG)) return ActionResultType.PASS;
-
-        if (world.isClientSide) return ActionResultType.SUCCESS;
-        if (!player.isCrouching()) return ActionResultType.FAIL;
-
-        TileEntity tile = world.getBlockEntity(pos);
-        if (tile == null) return ActionResultType.FAIL;
-
-        CompoundNBT nbt = tile.save(new CompoundNBT());
-        ItemStack itemStack = new ItemStack(tile.getBlockState().getBlock());
-        itemStack.setTag(nbt);
-
-        world.removeBlock(pos, false);
-        ItemEntity entityItem = new ItemEntity(world,
-                pos.getX() + 0.5,
-                pos.getY() + 0.5,
-                pos.getZ() + 0.5,
-                itemStack);
-        entityItem.setDefaultPickUpDelay();
-        world.addFreshEntity(entityItem);
-        return ActionResultType.SUCCESS;
+        return super.use(state, world, pos, player, hand, hit);
     }
 
 

@@ -169,4 +169,40 @@ public class TileWirelessOutputBus extends TileWirelessBus implements ITickableT
 
         return new BlockPos(inputBusX, inputBusY, inputBusZ);
     }
+
+    @Override
+    public void notifyConnectionRemove() {
+        updateInputBusConnectionInfo(false);
+    }
+
+    @Override
+    public void notifyConnectionLoad() {
+        updateInputBusConnectionInfo(true);
+    }
+
+    private void updateInputBusConnectionInfo(final boolean connect) {
+        if (subGridConnectionMap.isEmpty()) return;
+        if (Objects.isNull(level)) return;
+        final Set<String> keySet = subGridConnectionMap.keySet();
+        for (String connectionKey : keySet) {
+            final ConnectionInfo connectionInfo = subGridConnectionMap.get(connectionKey);
+            if (Objects.isNull(connectionInfo)) continue;
+            final int inputBusX = connectionInfo.getInputBusX();
+            final int inputBusY = connectionInfo.getInputBusY();
+            final int inputBusZ = connectionInfo.getInputBusZ();
+            final BlockPos blockPos = new BlockPos(inputBusX, inputBusY, inputBusZ);
+            final TileEntity blockEntity = level.getBlockEntity(blockPos);
+            if (Objects.isNull(blockEntity)) continue;
+            if (!(blockEntity instanceof TileWirelessInputBus)) return;
+            TileWirelessInputBus wirelessInputBus = (TileWirelessInputBus) blockEntity;
+            final ConnectionInfo currentConnection = wirelessInputBus.getCurrentConnection();
+            if (Objects.isNull(currentConnection)) continue;
+            currentConnection.setConnect(connect);
+            currentConnection.setNeedUpdateGridNode(true);
+            currentConnection.setOutputBusX(this.worldPosition.getX());
+            currentConnection.setOutputBusY(this.worldPosition.getY());
+            currentConnection.setOutputBusZ(this.worldPosition.getZ());
+            connectionInfo.setConnect(connect);
+        }
+    }
 }

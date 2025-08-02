@@ -88,6 +88,14 @@ public abstract class TileWirelessBus extends TileEntity implements IGridProxyab
         super.onLoad();
         proxy.validate();
         proxy.onReady();
+        notifyConnectionLoad();
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        proxy.remove();
+        notifyConnectionRemove();
     }
 
     @Override
@@ -134,5 +142,9 @@ public abstract class TileWirelessBus extends TileEntity implements IGridProxyab
             level.setBlock(worldPosition, newBlockState, 3);
         }
     }
+
+    public abstract void notifyConnectionRemove();
+
+    public abstract void notifyConnectionLoad();
 
 }

@@ -126,7 +126,7 @@ public class BlockWirelessInputBus extends BlockBaseWirelessBus implements ITile
         currentConnection.setOutputBusX(boundX);
         currentConnection.setOutputBusY(boundY);
         currentConnection.setOutputBusZ(boundZ);
-
+        tileWirelessOutputBus.addConnectionInfo(currentConnection);
         playerIn.sendMessage(new StringTextComponent(I18n.get("message.aewirelesschannel.bound_in_put_bus")), playerIn.getUUID());
         return true;
 

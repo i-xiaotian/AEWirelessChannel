@@ -54,7 +54,6 @@ minecraft {
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
 
-            // AE2 mixin fix
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg".toString()
 
@@ -87,7 +86,6 @@ minecraft {
     }
 }
 
-// resources from data generation
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
@@ -113,7 +111,7 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     implementation fg.deobf("appeng:appliedenergistics2:${appeng_version}")
     implementation fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:1.16-3.1.4-22")
-
+    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
 }
 
 def resourceTargets = ['META-INF/mods.toml', 'pack.mcmeta']

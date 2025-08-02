@@ -16,6 +16,7 @@ import net.minecraft.util.math.BlockPos;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.xiaotian.ae.wirelesscable.AEWirelessChannel.log;
@@ -155,4 +156,33 @@ public class TileWirelessInputBus extends TileWirelessBus implements ITickableTi
         return (TileWirelessOutputBus) outputBusEntity;
     }
 
+    @Override
+    public void notifyConnectionRemove() {
+        updateOutputBusConnectionInfo(false);
+    }
+
+    @Override
+    public void notifyConnectionLoad() {
+        updateOutputBusConnectionInfo(true);
+    }
+
+    private void updateOutputBusConnectionInfo(final boolean connect) {
+        if (Objects.isNull(level)) return;
+        final int inputBusX = currentConnection.getInputBusX();
+        final int inputBusY = currentConnection.getInputBusY();
+        final int inputBusZ = currentConnection.getInputBusZ();
+        final String connectionKey = currentConnection.getConnectionKey();
+        final BlockPos blockPos = new BlockPos(inputBusX, inputBusY, inputBusZ);
+        final TileEntity outputBusEntity = level.getBlockEntity(blockPos);
+        if (Objects.isNull(outputBusEntity)) return;
+        if (!(outputBusEntity instanceof TileWirelessOutputBus)) return;
+        TileWirelessOutputBus tileWirelessOutputBus = (TileWirelessOutputBus) outputBusEntity;
+        final Map<String, ConnectionInfo> gridConnectionMap = tileWirelessOutputBus.getSubGridConnectionMap();
+        final ConnectionInfo connectionInfo = gridConnectionMap.get(connectionKey);
+        if (Objects.isNull(connectionInfo)) return;
+        connectionInfo.setConnect(connect);
+        connectionInfo.setInputBusX(this.worldPosition.getX());
+        connectionInfo.setInputBusY(this.worldPosition.getY());
+        connectionInfo.setInputBusZ(this.worldPosition.getZ());
+    }
 }

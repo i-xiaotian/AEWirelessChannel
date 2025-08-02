@@ -25,22 +25,22 @@ public class ModelRegistry {
     public final static List<Block> BLOOM_BLOCK_LIST = new ArrayList<>();
 
 
-//    @SubscribeEvent
-//    public static void onModelBake(ModelBakeEvent event) {
-//        if (BLOOM_BLOCK_LIST.isEmpty()) return;
-//        for (Block block : BLOOM_BLOCK_LIST) {
-//            final ResourceLocation registryName = block.getRegistryName();
-//            if (Objects.isNull(registryName)) continue;
-//            final String blockName = registryName.toString();
-//            for (Direction facing : Direction.values()) {
-//                String variant = String.format("facing=%s,powered=true", facing.getName());
-//                ModelResourceLocation modelResLoc = new ModelResourceLocation(blockName, variant);
-//                IBakedModel base = event.getModelRegistry().get(modelResLoc);
-//                if (base != null) {
-//                    event.getModelRegistry().put(modelResLoc, new BloomLightModel(base));
-//                }
-//            }
-//        }
-//    }
+    @SubscribeEvent
+    public static void onModelBake(ModelBakeEvent event) {
+        if (BLOOM_BLOCK_LIST.isEmpty()) return;
+        for (Block block : BLOOM_BLOCK_LIST) {
+            final ResourceLocation registryName = block.getRegistryName();
+            if (Objects.isNull(registryName)) continue;
+            final String blockName = registryName.toString();
+            for (Direction facing : Direction.values()) {
+                String variant = String.format("facing=%s,powered=true", facing.getName());
+                ModelResourceLocation modelResLoc = new ModelResourceLocation(blockName, variant);
+                IBakedModel base = event.getModelRegistry().get(modelResLoc);
+                if (base != null) {
+                    event.getModelRegistry().put(modelResLoc, new BloomLightModel(base));
+                }
+            }
+        }
+    }
 
 }

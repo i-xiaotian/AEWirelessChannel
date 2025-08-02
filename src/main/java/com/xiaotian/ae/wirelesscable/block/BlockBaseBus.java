@@ -44,7 +44,7 @@ public abstract class BlockBaseBus extends Block implements IBlockBase, IBloomTe
 
     @Override
     public String getBloomTextureEndWith() {
-        return "_bloom";
+        return "_on";
     }
 
     @Nonnull
