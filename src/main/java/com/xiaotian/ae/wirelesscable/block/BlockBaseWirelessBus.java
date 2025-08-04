@@ -75,7 +75,7 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
     public IBlockState getStateForPlacement(@Nonnull final World worldIn, @Nonnull final BlockPos pos, @Nonnull final EnumFacing clickedFace,
                                             final float hitX, final float hitY, final float hitZ,
                                             final int meta, @Nonnull final EntityLivingBase placer) {
-        return this.getDefaultState().withProperty(FACING, clickedFace);
+        return this.getDefaultState().withProperty(FACING, clickedFace).withProperty(POWERED, Boolean.FALSE);
     }
 
     @Override
@@ -91,7 +91,8 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
                 final boolean needInitTagFromItemStack = iTileWithWireless.needInitTagFromItemStack();
                 if (needInitTagFromItemStack) {
                     final NBTTagCompound tagCompound = stack.getTagCompound();
-                    if (Objects.nonNull(tagCompound)) iTileWithWireless.initAEConnectionFromItemStackTag(tagCompound, tileEntity);
+                    if (Objects.nonNull(tagCompound))
+                        iTileWithWireless.initAEConnectionFromItemStackTag(tagCompound, tileEntity);
                 }
             }
             if (tileEntity instanceof final TileWirelessBus tileWirelessBus && placer instanceof EntityPlayer) {
