@@ -18,8 +18,8 @@ public abstract class ItemBlockBase extends BlockItem implements IHasTooltips {
 
     public ItemBlockBase(Block block, Properties properties) {
         super(block, properties.tab(AEWirelessChannel.wirelessItemGroup));
-        final ResourceLocation registryName = block.getRegistryName();
-        if (Objects.nonNull(registryName)) setRegistryName(registryName);
+//        final ResourceLocation registryName = block.getRegistryName();
+//        if (Objects.nonNull(registryName)) setRegistryName(registryName);
     }
 
     @Override

@@ -3,7 +3,6 @@ package com.xiaotian.ae.wirelesscable.block;
 import com.xiaotian.ae.wirelesscable.item.ItemBlockWirelessOutputBus;
 import com.xiaotian.ae.wirelesscable.registry.Items;
 import com.xiaotian.ae.wirelesscable.tile.TileWirelessOutputBus;
-import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.material.Material;
@@ -25,7 +24,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
-public class BlockWirelessOutputBus extends BlockBaseWirelessBus implements ITileWithWireless {
+public class BlockWirelessOutputBus extends BlockBaseWirelessBus {
 
     private static final AxisAlignedBB BOUNDING_BOX = new AxisAlignedBB(0.25, 0.0, 0.25, 0.75, 0.875, 0.75);
 
@@ -76,7 +75,7 @@ public class BlockWirelessOutputBus extends BlockBaseWirelessBus implements ITil
     protected boolean actionWithConnectionCard(final World worldIn, final BlockPos pos, final PlayerEntity playerIn, final Hand hand) {
         final ItemStack heldItem = playerIn.getItemInHand(hand);
         final Item item = heldItem.getItem();
-        if (item != Items.ITEM_WIRELESS_KEY_CARD) return false;
+        if (item != Items.ITEM_WIRELESS_KEY_CARD.get()) return false;
         if (playerIn.isCrouching()) return false;
         if (worldIn.isClientSide) return true;
 

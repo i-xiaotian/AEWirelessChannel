@@ -5,13 +5,10 @@ import com.xiaotian.ae.wirelesscable.client.model.BloomLightModel;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ModelResourceLocation;
-import net.minecraft.item.Item;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ModelBakeEvent;
-import net.minecraftforge.client.event.ModelRegistryEvent;
-import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -23,7 +20,6 @@ import java.util.Objects;
 public class ModelRegistry {
 
     public final static List<Block> BLOOM_BLOCK_LIST = new ArrayList<>();
-
 
     @SubscribeEvent
     public static void onModelBake(ModelBakeEvent event) {

@@ -12,13 +12,13 @@ import javax.annotation.Nonnull;
 public class TileDenseWirelessOutputBus extends TileWirelessOutputBus {
 
     public TileDenseWirelessOutputBus() {
-        super(TileEntityTypes.TILE_DENSE_WIRELESS_OUTPUT_BUS);
+        super(TileEntityTypes.TILE_DENSE_WIRELESS_OUTPUT_BUS.get());
         this.getProxy().setFlags(GridFlags.DENSE_CAPACITY);
     }
 
     @Override
     public ItemStack getVisualItemStack() {
-        return new ItemStack(Blocks.DENSE_WIRELESS_OUTPUT_BUS);
+        return new ItemStack(Blocks.DENSE_WIRELESS_OUTPUT_BUS.get());
     }
 
     @Nonnull

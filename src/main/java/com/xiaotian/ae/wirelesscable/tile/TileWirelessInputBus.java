@@ -26,7 +26,7 @@ public class TileWirelessInputBus extends TileWirelessBus implements ITickableTi
     private final ConnectionInfo currentConnection;
 
     public TileWirelessInputBus() {
-        super(TileEntityTypes.TILE_WIRELESS_INPUT_BUS);
+        super(TileEntityTypes.TILE_WIRELESS_INPUT_BUS.get());
         this.currentConnection = new ConnectionInfo(worldPosition);
     }
 
@@ -37,7 +37,7 @@ public class TileWirelessInputBus extends TileWirelessBus implements ITickableTi
 
     @Override
     public ItemStack getVisualItemStack() {
-        return new ItemStack(Blocks.WIRELESS_INPUT_BUS);
+        return new ItemStack(Blocks.WIRELESS_INPUT_BUS.get());
     }
 
     @Override

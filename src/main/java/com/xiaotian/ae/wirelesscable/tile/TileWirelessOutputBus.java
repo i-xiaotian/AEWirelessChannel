@@ -24,7 +24,7 @@ public class TileWirelessOutputBus extends TileWirelessBus implements ITickableT
     private final Map<String, ConnectionInfo> subGridConnectionMap;
 
     public TileWirelessOutputBus() {
-        super(TileEntityTypes.TILE_WIRELESS_OUTPUT_BUS);
+        super(TileEntityTypes.TILE_WIRELESS_OUTPUT_BUS.get());
         subGridConnectionMap = new HashMap<>();
     }
 
@@ -47,7 +47,7 @@ public class TileWirelessOutputBus extends TileWirelessBus implements ITickableT
 
     @Override
     public ItemStack getVisualItemStack() {
-        return new ItemStack(Blocks.WIRELESS_OUTPUT_BUS);
+        return new ItemStack(Blocks.WIRELESS_OUTPUT_BUS.get());
     }
 
     @Nonnull
