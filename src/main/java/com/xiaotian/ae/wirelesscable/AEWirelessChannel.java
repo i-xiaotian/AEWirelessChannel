@@ -6,11 +6,14 @@ import com.xiaotian.ae.wirelesscable.registry.Blocks;
 import com.xiaotian.ae.wirelesscable.registry.Items;
 import com.xiaotian.ae.wirelesscable.registry.TileEntityTypes;
 import com.xiaotian.ae.wirelesscable.tab.AEWirelessItemGroup;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -21,7 +24,7 @@ import org.apache.logging.log4j.Logger;
 public class AEWirelessChannel {
 
     public static final String MOD_ID = "aewirelesschannel";
-    public static final String MOD_NAME = "AE-Wireless-Channel";
+    public static final String MOD_NAME = "AE Wireless Channel";
 
     public static AEWirelessChannel instance;
     public final static Logger log = LogManager.getLogger();
@@ -38,15 +41,19 @@ public class AEWirelessChannel {
         TileEntityTypes.register(modEventBus);
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::loadComplete);
+        modEventBus.addListener(this::onClientSetup);
     }
 
     public void commonSetup(final FMLCommonSetupEvent event) {
         log.info(AEWirelessChannel.MOD_NAME + " common setup start.");
     }
 
-    private void loadComplete(final FMLLoadCompleteEvent event) {
+    public void loadComplete(final FMLLoadCompleteEvent event) {
         if (ModList.get().isLoaded("theoneprobe")) TopRegistry.register();
     }
 
+    public void onClientSetup(final FMLClientSetupEvent event) {
+        Blocks.setTranslucentBlockRenderType();
+    }
 
 }

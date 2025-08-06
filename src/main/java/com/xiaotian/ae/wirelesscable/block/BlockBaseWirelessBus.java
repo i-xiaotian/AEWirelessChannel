@@ -40,8 +40,6 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus implements ITile
     private static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.values());
     public static final BooleanProperty POWERED = BooleanProperty.create("powered");
 
-
-
     public BlockBaseWirelessBus(final Properties properties) {
         super(properties);
         this.defaultBlockState().setValue(FACING, Direction.NORTH)
