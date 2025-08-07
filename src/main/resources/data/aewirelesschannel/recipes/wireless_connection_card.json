@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "appliedenergistics2:wireless_receiver"
+    },
+    {
+      "item": "appliedenergistics2:biometric_card"
+    }
+  ],
+  "result": {
+    "item": "aewirelesschannel:item_wireless_key_card"
+  }
+}

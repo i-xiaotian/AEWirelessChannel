@@ -1,5 +1,6 @@
 package com.xiaotian.ae.wirelesscable.block;
 
+import com.xiaotian.ae.wirelesscable.event.EventHandler;
 import com.xiaotian.ae.wirelesscable.item.ItemBlockWirelessOutputBus;
 import com.xiaotian.ae.wirelesscable.registry.Items;
 import com.xiaotian.ae.wirelesscable.tile.TileWirelessOutputBus;

@@ -5,6 +5,7 @@ import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.security.ISecurityGrid;
 import com.xiaotian.ae.wirelesscable.entity.ConnectionInfo;
+import com.xiaotian.ae.wirelesscable.event.EventHandler;
 import com.xiaotian.ae.wirelesscable.item.ItemBlockWirelessInputBus;
 import com.xiaotian.ae.wirelesscable.registry.Items;
 import com.xiaotian.ae.wirelesscable.tile.TileWirelessInputBus;

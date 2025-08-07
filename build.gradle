@@ -30,6 +30,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 minecraft {
     mappings channel: mappings_channel, version: mappings_version
 
+    // copy from lazyae2
     runs {
         client {
             workingDirectory project.file('run')
@@ -100,10 +101,6 @@ repositories {
     maven {
         name "Progwml6 maven" // Just Enough Items
         url "https://dvs1.progwml6.com/files/maven/"
-    }
-    maven {
-        name 'BlameJared' // CraftTweaker
-        url 'https://maven.blamejared.com'
     }
 }
 

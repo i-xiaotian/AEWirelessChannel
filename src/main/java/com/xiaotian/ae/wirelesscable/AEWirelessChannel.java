@@ -6,8 +6,6 @@ import com.xiaotian.ae.wirelesscable.registry.Blocks;
 import com.xiaotian.ae.wirelesscable.registry.Items;
 import com.xiaotian.ae.wirelesscable.registry.TileEntityTypes;
 import com.xiaotian.ae.wirelesscable.tab.AEWirelessItemGroup;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -39,16 +37,16 @@ public class AEWirelessChannel {
         Blocks.register(modEventBus);
         Items.register(modEventBus);
         TileEntityTypes.register(modEventBus);
-        modEventBus.addListener(this::commonSetup);
-        modEventBus.addListener(this::loadComplete);
+        modEventBus.addListener(this::onCommonSetup);
+        modEventBus.addListener(this::onLoadComplete);
         modEventBus.addListener(this::onClientSetup);
     }
 
-    public void commonSetup(final FMLCommonSetupEvent event) {
+    public void onCommonSetup(final FMLCommonSetupEvent event) {
         log.info(AEWirelessChannel.MOD_NAME + " common setup start.");
     }
 
-    public void loadComplete(final FMLLoadCompleteEvent event) {
+    public void onLoadComplete(final FMLLoadCompleteEvent event) {
         if (ModList.get().isLoaded("theoneprobe")) TopRegistry.register();
     }
 

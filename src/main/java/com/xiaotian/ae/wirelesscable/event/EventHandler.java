@@ -28,7 +28,7 @@ import java.util.Objects;
 @Mod.EventBusSubscriber(modid = AEWirelessChannel.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class EventHandler {
 
-    private static final Tags.IOptionalNamedTag<Item> WRENCH_TAG = ItemTags.createOptional(new ResourceLocation("appliedenergistics2", "quartz_wrench"));
+    public static final Tags.IOptionalNamedTag<Item> WRENCH_TAG = ItemTags.createOptional(new ResourceLocation("appliedenergistics2", "quartz_wrench"));
 
     @SubscribeEvent
     public static void onRightClickBlock(final PlayerInteractEvent.RightClickBlock event) {

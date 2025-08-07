@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CWC",
+    "RLR",
+    "CPC"
+  ],
+  "key": {
+    "C": {
+      "item": "appliedenergistics2:purified_fluix_crystal"
+    },
+    "L": {
+      "item": "appliedenergistics2:calculation_processor"
+    },
+    "W": {
+      "item": "appliedenergistics2:wireless_receiver"
+    },
+    "P": {
+      "tag": "appliedenergistics2:covered_cable"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "item": "aewirelesschannel:block_wireless_output_bus"
+  }
+}
