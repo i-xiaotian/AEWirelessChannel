@@ -145,16 +145,25 @@ public abstract class TileWirelessBus extends TileEntity implements IGridProxyab
 
     @Override
     public void update() {
-        final boolean active = proxy.isActive();
+        if (world == null || pos == null) {
+            return;
+        }
 
-        final IBlockState currentBlockState = world.getBlockState(pos);
-        final Boolean value = currentBlockState.getValue(BlockBaseWirelessBus.POWERED);
+        final IBlockState state = world.getBlockState(pos);
 
-        if (active != value) {
-            final IBlockState newBlockState = currentBlockState.withProperty(BlockBaseWirelessBus.POWERED, active);
-            world.setBlockState(pos, newBlockState, 3);
+        if (state.getBlock().isAir(state, world, pos)) return;
+
+        if (!state.getProperties().containsKey(BlockBaseWirelessBus.POWERED)) return;
+
+        boolean active = proxy.isActive();
+        boolean powered = state.getValue(BlockBaseWirelessBus.POWERED);
+
+        if (active != powered) {
+            IBlockState newState = state.withProperty(BlockBaseWirelessBus.POWERED, active);
+            world.setBlockState(pos, newState, 3);
         }
     }
+
 
     private void requestTicket() {
         if (Objects.isNull(ticket)) {
