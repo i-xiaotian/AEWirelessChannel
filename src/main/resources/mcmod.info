@@ -5,7 +5,6 @@
         "description": "A mod for wireless AE channel transmission",
         "version": "${version}",
         "mcversion": "${mcversion}",
-        "url": "https://www.curseforge.com/minecraft/mc-mods/modularmachinery-community-edition",
         "updateUrl": "",
         "authorList": [ "i_xiaotian", "KasumiNova"],
         "credits": "none",

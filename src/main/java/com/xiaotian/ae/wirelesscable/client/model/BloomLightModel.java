@@ -38,7 +38,8 @@ public class BloomLightModel implements IBakedModel {
     public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
         List<BakedQuad> originalQuads = base.getQuads(state, side, rand);
         final Block block = state.getBlock();
-        if (!(block instanceof IBloomTexture iBloomTexture)) return originalQuads;
+        if (!(block instanceof IBloomTexture)) return originalQuads;
+        final IBloomTexture iBloomTexture = (IBloomTexture) block;
         List<BakedQuad> quads = new ArrayList<>(originalQuads.size());
 
         for (BakedQuad quad : originalQuads) {

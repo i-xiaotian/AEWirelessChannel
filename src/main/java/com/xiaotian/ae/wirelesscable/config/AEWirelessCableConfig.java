@@ -1,7 +1,9 @@
 package com.xiaotian.ae.wirelesscable.config;
 
 import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.config.Config;
+import net.minecraftforge.oredict.OreDictionary;
 
 @Config(modid = AEWirelessChannel.MOD_ID, name = "AEWirelessChannel")
 public class AEWirelessCableConfig {
@@ -30,17 +32,52 @@ public class AEWirelessCableConfig {
     })
     public static int topConnectionInfoShowCount = 10;
 
+    @Config.Comment({
+            "Whether a configured tool is required to safely dismantle wireless buses.",
+            "潜行右键安全拆除无线总线时是否必须使用下方列表中的工具。"
+    })
+    public static boolean requireDismantlingTool = true;
+
+    @Config.Comment({
+            "Allowed dismantling tools. Entries may be item registry IDs (modid:item) or Ore Dictionary names.",
+            "拆除工具列表。可填写物品注册名（modid:item）或矿物词典名。默认 itemQuartzWrench。"
+    })
+    public static String[] dismantlingTools = {"itemQuartzWrench"};
+
+    public static boolean isDismantlingTool(final ItemStack stack) {
+        if (stack.isEmpty()) return false;
+
+        final String registryName = String.valueOf(stack.getItem().getRegistryName());
+        for (String configuredTool : dismantlingTools) {
+            if (configuredTool == null || configuredTool.trim().isEmpty()) continue;
+            final String tool = configuredTool.trim();
+            if (tool.startsWith("ore:")) {
+                if (hasOreName(stack, tool.substring("ore:".length()))) return true;
+            } else if (tool.equals(registryName) || hasOreName(stack, tool)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasOreName(final ItemStack stack, final String name) {
+        for (int oreId : OreDictionary.getOreIDs(stack)) {
+            if (name.equals(OreDictionary.getOreName(oreId))) return true;
+        }
+        return false;
+    }
+
 
     public static class ChunkLoad {
 
         @Config.Comment({
                 "Whether the wireless bus can keep the chunk loaded.",
-                "The 'maximumChunksPerTicket' setting in 'forgeChunkLoading.cfg' affects",
-                "how many buses can keep chunks loaded. The default limit is 25.",
+                "All wireless buses in a world share one Forge ticket owned by this mod.",
+                "Forge's maximumChunksPerTicket setting limits the total chunks loaded by the mod in that world.",
                 "",
                 "无线频道总线是否可以保持区块加载。",
-                "forgeChunkLoading.cfg 文件中的 maximumChunksPerTicket 配置项",
-                "影响可加载区块的总线数量，默认限制为 25 个。"
+                "同一个世界内的无线总线共同使用由本模组持有的一张 Forge ticket。",
+                "forgeChunkLoading.cfg 中的 maximumChunksPerTicket 限制本模组在该世界可加载的区块总数。"
         })
         public boolean forceChunk = false;
 
@@ -51,6 +88,7 @@ public class AEWirelessCableConfig {
                 "无线总线保持区块加载时的加载半径。",
                 "1 表示加载 3x3 区块，2 表示 5x5，以此类推。"
         })
+        @Config.RangeInt(min = 0, max = 10)
         public int loadRadius = 1;
     }
 }

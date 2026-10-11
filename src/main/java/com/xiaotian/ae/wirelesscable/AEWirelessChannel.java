@@ -1,6 +1,8 @@
 package com.xiaotian.ae.wirelesscable;
 
 import com.xiaotian.ae.wirelesscable.proxy.CommonProxy;
+import net.minecraftforge.common.config.Config;
+import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -32,6 +34,7 @@ public class AEWirelessChannel {
         log = event.getModLog();
         instance = this;
         event.getModMetadata().version = VERSION;
+        ConfigManager.sync(MOD_ID, Config.Type.INSTANCE);
         proxy.preInit();
     }
 

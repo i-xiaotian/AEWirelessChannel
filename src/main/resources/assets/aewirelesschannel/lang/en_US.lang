@@ -7,40 +7,49 @@ tile.aewirelesschannel.block_dense_wireless_input_bus.name=ME dense channel inpu
 
 item.aewirelesschannel.item_wireless_key_card.name=ME wireless channel connection card
 
-tooltip.aewirelesschannel.tile_wireless_bus.info.0=§cBreak the block directly will destroy this bus
-tooltip.aewirelesschannel.tile_wireless_bus.info.1=Using the Quartz Wrench Shift-right-click can be safely removed and the connection information is preserved
+tooltip.aewirelesschannel.tile_wireless_bus.info.0=Sneak-right-click to dismantle safely
+tooltip.aewirelesschannel.tile_wireless_bus.dismantling_tools=Safe dismantling tools: %s
+tooltip.aewirelesschannel.tile_wireless_bus.dismantling_tools_optional=Safe dismantling tools (optional): %s
+tooltip.aewirelesschannel.tile_wireless_bus.dismantling_tools_none=No valid tools configured
 
-tooltip.aewirelesschannel.tile_wireless_bus_input.info.0=Use the ME wireless channel connection card to right-click it to connect it to the Wireless output bus
-tooltip.aewirelesschannel.tile_wireless_bus_input.info.1=§rTransmission of up to §e8 §r channels
+tooltip.aewirelesschannel.tile_wireless_bus_input.info.0=Right-click with a bound card to connect; sneak-right-click to disconnect
 
-tooltip.aewirelesschannel.tile_dense_wireless_bus_input.info.0=Use the ME wireless channel connection card to right-click it to connect it to the Wireless output bus
-tooltip.aewirelesschannel.tile_dense_wireless_bus_input.info.1=§rTransmission of up to §e32 §r channels
+tooltip.aewirelesschannel.tile_dense_wireless_bus_input.info.0=Right-click with a bound card to connect; sneak-right-click to disconnect
 
-tooltip.aewirelesschannel.tile_wireless_bus_output.info.0=Use the ME wireless channel connection card to right-click to bind it to the ME Wireless Channel Connection Card
-tooltip.aewirelesschannel.tile_wireless_bus_output.info.1=Then right-click on the wireless input bus to connect it to this Wireless channel output bus
-tooltip.aewirelesschannel.tile_wireless_bus_output.info.2=§rTransmission of up to §e8 §r channels
+tooltip.aewirelesschannel.tile_wireless_bus_output.info.0=Right-click with a card to bind; use it on an input bus to connect
 
-tooltip.aewirelesschannel.tile_dense_wireless_bus_output.info.0=Use the ME wireless channel connection card to right-click to bind it to the ME Wireless Channel Connection Card
-tooltip.aewirelesschannel.tile_dense_wireless_bus_output.info.1=Then right-click on the wireless input bus to connect it to this Wireless channel output bus
-tooltip.aewirelesschannel.tile_dense_wireless_bus_output.info.2=§rTransmission of up to §e32 §r channels
+tooltip.aewirelesschannel.tile_dense_wireless_bus_output.info.0=Right-click with a card to bind; use it on an input bus to connect
+tooltip.aewirelesschannel.channel_limit=AE2 channel limit: %d
 
-tooltip.aewirelesschannel.tile_wireless_bus.info=Sneak-right-click with a Quartz Wrench to safely dismantle.
-tooltip.aewirelesschannel.item_wireless_key_card.output=Right-click a Wireless Channel Output Bus to bind it to this Connection Card
-tooltip.aewirelesschannel.item_wireless_key_card.input=Right-click a Wireless Channel Input Bus to link it to the bound Output Bus
+tooltip.aewirelesschannel.item_wireless_key_card.output=Right-click an output bus to bind and show links; hold the card to keep them highlighted
+tooltip.aewirelesschannel.item_wireless_key_card.input=Right-click an input bus to connect; sneak-right-click it to disconnect
+tooltip.aewirelesschannel.item_wireless_key_card.disconnect_output=Sneak-right-click an output bus to clear all input links; sneak-right-click an input bus to clear its link configuration
 tooltip.aewirelesschannel.item_wireless_key_card.not_bound=Unbound
 tooltip.aewirelesschannel.item_wireless_key_card.bound_info=§bThe bound wireless channel output bus x:§e%d §by:§e%d §bz:§e%d §bdimension: §e%d
 tooltip.aewirelesschannel.item_wireless_key_card.bound_type_error=The bound block is not a wireless channel output bus!
 
 message.aewirelesschannel.bound_out_put_bus=The connection card is bound to the output bus
 message.aewirelesschannel.bound_in_put_bus=A bound wireless channel output bus is connected to the input bus
+message.aewirelesschannel.cleared_input_bus=Input bus connection configuration cleared
 message.aewirelesschannel.not_bound=Please bind the wireless channel output bus to the connection card first
 message.aewirelesschannel.bound_type_error=The bound block pos are not ME wireless channel output bus
 message.aewirelesschannel.bound_type_error_input=The device is not supported
+message.aewirelesschannel.connection_card_no_connections=This bus has no active wireless links
+message.aewirelesschannel.connection_card_disconnected_output=Cleared %d input links from this output bus
 
 top.aewirelesschannel.device_online=Device online
 top.aewirelesschannel.device_offline=Device offline
-top.aewirelesschannel.wireless_bus_connection_info_header=Device connection information
-top.aewirelesschannel.wireless_bus_connection_info=Connection Key: §e%s
-top.aewirelesschannel.wireless_bus_connection_info_more_than=%d not shown...
-top.aewirelesschannel.wireless_input_bus_connection_info=§bAE network source x:§e%d §by:§e%d §bz:§e%d
-top.aewirelesschannel.wireless_output_bus_connection_info=§bAE network Connected x:§e%d §by:§e%d §bz:§e%d
+top.aewirelesschannel.channel_unavailable=Channel information unavailable
+top.aewirelesschannel.channel_usage_unknown=Channels in use: %d
+top.aewirelesschannel.channel_usage=Channels: %d / %d
+top.aewirelesschannel.chunk_loading_header=Chunk loading
+top.aewirelesschannel.chunk_loading_area=Bus coverage: %d x %d chunks (radius %d)
+top.aewirelesschannel.chunk_loading_waiting=Waiting for a chunk ticket
+top.aewirelesschannel.chunk_loading_held=Maintained in this bus area: %d / %d chunks
+top.aewirelesschannel.chunk_loading_shared=Maintained by buses in this dimension: %d / %d chunks
+top.aewirelesschannel.connection_header=Wireless links
+top.aewirelesschannel.input_unconnected=No output bus connected
+top.aewirelesschannel.input_source=Output bus position: %d, %d, %d
+top.aewirelesschannel.output_no_inputs=No input buses connected
+top.aewirelesschannel.output_input=Input bus #%d: %d, %d, %d
+top.aewirelesschannel.connection_more=and %d more input buses

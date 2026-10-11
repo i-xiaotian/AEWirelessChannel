@@ -1,7 +1,11 @@
 package com.xiaotian.ae.wirelesscable.block;
 
+import appeng.api.config.SecurityPermissions;
+import appeng.api.networking.IGridNode;
+import appeng.api.networking.security.ISecurityGrid;
 import com.xiaotian.ae.wirelesscable.entity.ConnectionInfo;
 import com.xiaotian.ae.wirelesscable.item.ItemBlockWirelessOutputBus;
+import com.xiaotian.ae.wirelesscable.network.WirelessLinkNetwork;
 import com.xiaotian.ae.wirelesscable.registry.Items;
 import com.xiaotian.ae.wirelesscable.tile.TileWirelessInputBus;
 import com.xiaotian.ae.wirelesscable.tile.TileWirelessOutputBus;
@@ -74,8 +78,28 @@ public class BlockWirelessOutputBus extends BlockBaseWirelessBus implements ITil
         final ItemStack heldItem = playerIn.getHeldItem(hand);
         final Item item = heldItem.getItem();
         if (item != Items.ITEM_WIRELESS_KEY_CARD) return false;
-        if (playerIn.isSneaking()) return false;
-        if (worldIn.isRemote) return true;
+        if (playerIn.isSneaking()) {
+            if (worldIn.isRemote) return true;
+            final TileEntity outputEntity = worldIn.getTileEntity(pos);
+            if (!(outputEntity instanceof TileWirelessOutputBus)) return false;
+            final TileWirelessOutputBus outputBus = (TileWirelessOutputBus) outputEntity;
+            final IGridNode outputNode = outputBus.getActionableNode();
+            if (outputNode != null && outputNode.getGrid() != null) {
+                final ISecurityGrid security = outputNode.getGrid().getCache(ISecurityGrid.class);
+                if (!security.hasPermission(playerIn, SecurityPermissions.BUILD)) {
+                    playerIn.sendMessage(new TextComponentString(I18n.format("message.aewirelesschannel.no_permission")));
+                    return true;
+                }
+            }
+            final int disconnected = outputBus.disconnectConnections();
+            playerIn.sendMessage(new TextComponentString(I18n.format(
+                    "message.aewirelesschannel.connection_card_disconnected_output", disconnected)));
+            return true;
+        }
+        if (worldIn.isRemote) {
+            WirelessLinkNetwork.requestVisualization(pos, hand, worldIn.provider.getDimension());
+            return true;
+        }
 
         final NBTTagCompound outputBusBound = writeOutputBusInfoTag(worldIn, pos);
         heldItem.setTagCompound(outputBusBound);
@@ -107,7 +131,8 @@ public class BlockWirelessOutputBus extends BlockBaseWirelessBus implements ITil
     @Override
     @ParametersAreNonnullByDefault
     public void initAEConnectionFromItemStackTag(final NBTTagCompound tagCompound, final TileEntity tileEntity) {
-        if (!(tileEntity instanceof TileWirelessOutputBus wirelessOutputBus)) return;
+        if (!(tileEntity instanceof TileWirelessOutputBus)) return;
+        final TileWirelessOutputBus wirelessOutputBus = (TileWirelessOutputBus) tileEntity;
         wirelessOutputBus.initConnectionMap(tagCompound, wirelessOutputBus);
 
         wirelessOutputBus.loadWirelessInfo(wirelessOutputBus);

@@ -1,6 +1,7 @@
 package com.xiaotian.ae.wirelesscable.block;
 
 import appeng.me.helpers.AENetworkProxy;
+import com.xiaotian.ae.wirelesscable.config.AEWirelessCableConfig;
 import com.xiaotian.ae.wirelesscable.tile.TileWirelessBus;
 import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.block.Block;
@@ -21,8 +22,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraftforge.oredict.OreDictionary;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -87,7 +86,8 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
             Block block = world.getBlockState(pos).getBlock();
             TileEntity tileEntity = world.getTileEntity(pos);
             if (Objects.isNull(tileEntity)) return;
-            if (block instanceof ITileWithWireless iTileWithWireless) {
+            if (block instanceof ITileWithWireless) {
+                final ITileWithWireless iTileWithWireless = (ITileWithWireless) block;
                 final boolean needInitTagFromItemStack = iTileWithWireless.needInitTagFromItemStack();
                 if (needInitTagFromItemStack) {
                     final NBTTagCompound tagCompound = stack.getTagCompound();
@@ -95,7 +95,8 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
                         iTileWithWireless.initAEConnectionFromItemStackTag(tagCompound, tileEntity);
                 }
             }
-            if (tileEntity instanceof final TileWirelessBus tileWirelessBus && placer instanceof EntityPlayer) {
+            if (tileEntity instanceof TileWirelessBus && placer instanceof EntityPlayer) {
+                final TileWirelessBus tileWirelessBus = (TileWirelessBus) tileEntity;
                 final AENetworkProxy proxy = tileWirelessBus.getProxy();
                 proxy.setOwner((EntityPlayer) placer);
                 final EnumFacing opposite = state.getValue(FACING).getOpposite();
@@ -117,7 +118,8 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
         world.setBlockState(pos, state.withProperty(FACING, newFacing), 3);
 
         TileEntity tileEntity = world.getTileEntity(pos);
-        if (tileEntity instanceof final TileWirelessBus tileWirelessBus) {
+        if (tileEntity instanceof TileWirelessBus) {
+            final TileWirelessBus tileWirelessBus = (TileWirelessBus) tileEntity;
             final AENetworkProxy proxy = tileWirelessBus.getProxy();
             final EnumFacing opposite = newFacing.getOpposite();
             proxy.setValidSides(EnumSet.of(opposite));
@@ -130,37 +132,35 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
     public boolean onBlockActivated(final World worldIn, final BlockPos pos, final IBlockState state, final EntityPlayer playerIn, final EnumHand hand, final EnumFacing facing, final float hitX, final float hitY, final float hitZ) {
 
         if (actionWithConnectionCard(worldIn, pos, playerIn, hand)) return true;
-        final ItemStack heldItem = playerIn.getHeldItem(hand);
-        if (!heldItem.isEmpty()) {
-            final int[] oreIDs = OreDictionary.getOreIDs(heldItem);
-            for (int oreID : oreIDs) {
-                final String oreName = OreDictionary.getOreName(oreID);
-                if (StringUtils.equals("itemQuartzWrench", oreName)) {
-                    if (worldIn.isRemote) return true;
+        final EnumHand otherHand = hand == EnumHand.MAIN_HAND ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND;
+        if (playerIn.isSneaking() && actionWithConnectionCard(worldIn, pos, playerIn, otherHand)) return true;
+        if (!playerIn.isSneaking()) return false;
 
-                    if (!playerIn.isSneaking()) return false;
-                    TileEntity tile = worldIn.getTileEntity(pos);
-                    if (Objects.isNull(tile)) return false;
-                    final NBTTagCompound nbtTagCompound = new NBTTagCompound();
-                    tile.writeToNBT(nbtTagCompound);
-                    final Block blockType = tile.getBlockType();
-
-                    worldIn.setBlockToAir(pos);
-                    final ItemStack itemStack = new ItemStack(blockType);
-                    itemStack.setTagCompound(nbtTagCompound);
-                    EntityItem entityItem = new EntityItem(worldIn,
-                            pos.getX() + 0.5,
-                            pos.getY() + 0.5,
-                            pos.getZ() + 0.5,
-                            itemStack
-                    );
-                    entityItem.setDefaultPickupDelay();
-                    worldIn.spawnEntity(entityItem);
-                    return true;
-                }
-            }
+        ItemStack heldItem = playerIn.getHeldItem(hand);
+        if (heldItem.isEmpty() || !AEWirelessCableConfig.isDismantlingTool(heldItem)) {
+            heldItem = playerIn.getHeldItem(otherHand);
         }
-        return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+        if (AEWirelessCableConfig.requireDismantlingTool && !AEWirelessCableConfig.isDismantlingTool(heldItem)) return false;
+        if (worldIn.isRemote) return true;
+
+        TileEntity tile = worldIn.getTileEntity(pos);
+        if (Objects.isNull(tile)) return false;
+        final NBTTagCompound nbtTagCompound = new NBTTagCompound();
+        tile.writeToNBT(nbtTagCompound);
+        final Block blockType = tile.getBlockType();
+
+        worldIn.setBlockToAir(pos);
+        final ItemStack itemStack = new ItemStack(blockType);
+        itemStack.setTagCompound(nbtTagCompound);
+        EntityItem entityItem = new EntityItem(worldIn,
+                pos.getX() + 0.5,
+                pos.getY() + 0.5,
+                pos.getZ() + 0.5,
+                itemStack
+        );
+        entityItem.setDefaultPickupDelay();
+        worldIn.spawnEntity(entityItem);
+        return true;
     }
 
     @Override
@@ -179,5 +179,10 @@ public abstract class BlockBaseWirelessBus extends BlockBaseBus {
 
 
     protected abstract boolean actionWithConnectionCard(final World worldIn, final BlockPos pos, final EntityPlayer playerIn, final EnumHand hand);
+
+    public final boolean handleConnectionCardAction(final World world, final BlockPos pos,
+                                                    final EntityPlayer player, final EnumHand hand) {
+        return actionWithConnectionCard(world, pos, player, hand);
+    }
 
 }

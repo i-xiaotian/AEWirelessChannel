@@ -70,11 +70,35 @@ public class BlockWirelessInputBus extends BlockBaseWirelessBus implements ITile
         final ItemStack heldItem = playerIn.getHeldItem(hand);
         final Item item = heldItem.getItem();
         if (item != Items.ITEM_WIRELESS_KEY_CARD) return false;
-        if (playerIn.isSneaking()) return false;
+        if (playerIn.isSneaking()) {
+            if (worldIn.isRemote) return true;
+            final TileEntity inputTile = worldIn.getTileEntity(pos);
+            if (!(inputTile instanceof TileWirelessInputBus)) return false;
+            final TileWirelessInputBus inputBus = (TileWirelessInputBus) inputTile;
+            final ConnectionInfo connection = inputBus.getCurrentConnection();
+            if (connection.isConnect()) {
+                final BlockPos outputPos = new BlockPos(connection.getOutputBusX(), connection.getOutputBusY(), connection.getOutputBusZ());
+                final TileEntity linkedOutput = worldIn.getTileEntity(outputPos);
+                if (linkedOutput instanceof TileWirelessOutputBus) {
+                    final IGridNode outputNode = ((TileWirelessOutputBus) linkedOutput).getActionableNode();
+                    if (outputNode != null && outputNode.getGrid() != null) {
+                        final ISecurityGrid security = outputNode.getGrid().getCache(ISecurityGrid.class);
+                        if (!security.hasPermission(playerIn, SecurityPermissions.BUILD)) {
+                            playerIn.sendMessage(new TextComponentString(I18n.format("message.aewirelesschannel.no_permission")));
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            inputBus.clearConnectionConfiguration();
+            playerIn.sendMessage(new TextComponentString(I18n.format("message.aewirelesschannel.cleared_input_bus")));
+            return true;
+        }
         if (worldIn.isRemote) return true;
 
         final NBTTagCompound tagCompound = heldItem.getTagCompound();
-        if (Objects.isNull(tagCompound)) {
+        if (Objects.isNull(tagCompound) || !tagCompound.hasKey("outputBusBound")) {
             playerIn.sendMessage(new TextComponentString(I18n.format("message.aewirelesschannel.not_bound")));
             return false;
         }
@@ -88,10 +112,11 @@ public class BlockWirelessInputBus extends BlockBaseWirelessBus implements ITile
             playerIn.sendMessage(new TextComponentString(I18n.format("message.aewirelesschannel.not_bound")));
             return false;
         }
-        if (!(tileEntity instanceof TileWirelessOutputBus tileWirelessOutputBus)) {
+        if (!(tileEntity instanceof TileWirelessOutputBus)) {
             playerIn.sendMessage(new TextComponentString(I18n.format("message.aewirelesschannel.bound_type_error")));
             return false;
         }
+        final TileWirelessOutputBus tileWirelessOutputBus = (TileWirelessOutputBus) tileEntity;
         final IGridNode actionableNode = tileWirelessOutputBus.getActionableNode();
         final IGrid grid = actionableNode.getGrid();
         ISecurityGrid securityGrid = grid.getCache(ISecurityGrid.class);
@@ -101,10 +126,11 @@ public class BlockWirelessInputBus extends BlockBaseWirelessBus implements ITile
         }
 
         final TileEntity inputBus = worldIn.getTileEntity(pos);
-        if (!(inputBus instanceof TileWirelessInputBus tileWirelessInputBus)) {
+        if (!(inputBus instanceof TileWirelessInputBus)) {
             playerIn.sendMessage(new TextComponentString(I18n.format("message.aewirelesschannel.bound_type_error_input")));
             return false;
         }
+        final TileWirelessInputBus tileWirelessInputBus = (TileWirelessInputBus) inputBus;
         final ConnectionInfo currentConnection = tileWirelessInputBus.getCurrentConnection();
         final boolean connect = currentConnection.isConnect();
         if (connect) {
@@ -116,6 +142,8 @@ public class BlockWirelessInputBus extends BlockBaseWirelessBus implements ITile
         currentConnection.setOutputBusX(boundX);
         currentConnection.setOutputBusY(boundY);
         currentConnection.setOutputBusZ(boundZ);
+        tileWirelessInputBus.markConnectionRequested();
+        tileWirelessInputBus.markDirty();
 
         playerIn.sendMessage(new TextComponentString(I18n.format("message.aewirelesschannel.bound_in_put_bus")));
         return true;
@@ -136,7 +164,11 @@ public class BlockWirelessInputBus extends BlockBaseWirelessBus implements ITile
     @Override
     @ParametersAreNonnullByDefault
     public void initAEConnectionFromItemStackTag(final NBTTagCompound tagCompound, final TileEntity tileEntity) {
-        if (!(tileEntity instanceof TileWirelessInputBus tileWirelessInputBus)) return;
+        if (!(tileEntity instanceof TileWirelessInputBus)) return;
+        final TileWirelessInputBus tileWirelessInputBus = (TileWirelessInputBus) tileEntity;
         tileWirelessInputBus.initConnectionInfo(tagCompound, tileWirelessInputBus);
+        if (tileWirelessInputBus.getCurrentConnection().isConnect()) {
+            tileWirelessInputBus.markConnectionRequested();
+        }
     }
 }

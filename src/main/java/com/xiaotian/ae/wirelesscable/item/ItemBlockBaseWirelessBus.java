@@ -18,5 +18,6 @@ public abstract class ItemBlockBaseWirelessBus extends ItemBlockBase {
     @Override
     public void addTooltips(@Nonnull final ItemStack stack, @Nonnull final List<String> tooltips) {
         TooltipUtils.addMultiLine(tooltips, I18N_KEY_PREFIX);
+        TooltipUtils.addDismantlingTools(tooltips);
     }
 }

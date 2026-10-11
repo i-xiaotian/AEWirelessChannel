@@ -1,6 +1,7 @@
 package com.xiaotian.ae.wirelesscable.item;
 
 import com.xiaotian.ae.wirelesscable.util.TooltipUtils;
+import com.xiaotian.ae.wirelesscable.util.Ae2ChannelLimits;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 
@@ -19,5 +20,6 @@ public class ItemBlockWirelessOutputBus extends ItemBlockBaseWirelessBus {
     public void addTooltips(@Nonnull final ItemStack stack, @Nonnull final List<String> tooltips) {
         super.addTooltips(stack, tooltips);
         TooltipUtils.addMultiLine(tooltips, I18N_KEY_PREFIX);
+        Ae2ChannelLimits.addTooltip(tooltips, false);
     }
 }

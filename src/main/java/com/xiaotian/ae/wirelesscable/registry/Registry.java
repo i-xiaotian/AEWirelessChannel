@@ -48,7 +48,8 @@ public class Registry {
         event.getRegistry().registerAll(BLOCK_LIST.toArray(new Block[0]));
         for (Block block : BLOCK_LIST) {
             if (block instanceof IBloomTexture) ModelRegistry.BLOOM_BLOCK_LIST.add(block);
-            if (!(block instanceof final ITileWithWireless hasTileEntity)) return;
+            if (!(block instanceof ITileWithWireless)) return;
+            final ITileWithWireless hasTileEntity = (ITileWithWireless) block;
             final Class<? extends TileEntity> tileEntityClass = hasTileEntity.getTileEntityClass();
             final String tileEntityId = hasTileEntity.getTileEntityId();
             GameRegistry.registerTileEntity(tileEntityClass, new ResourceLocation(AEWirelessChannel.MOD_ID, tileEntityId));
@@ -59,7 +60,8 @@ public class Registry {
     public static void onRegisterItem(RegistryEvent.Register<Item> event) {
         for (Block block : BLOCK_LIST) {
             ItemBlock itemBlock;
-            if (block instanceof IBlockBase blockBase) {
+            if (block instanceof IBlockBase) {
+                final IBlockBase blockBase = (IBlockBase) block;
                 itemBlock = blockBase.createItemBlock(block);
             } else {
                 itemBlock = new ItemBlock(block);
