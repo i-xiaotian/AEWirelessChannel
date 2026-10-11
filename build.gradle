@@ -1,0 +1,73 @@
+buildscript {
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3.10'
+    }
+}
+
+apply plugin: 'net.minecraftforge.gradle.forge'
+
+group = 'com.xiaotian.ae.wirelesscable'
+version = '1.0.0-release'
+archivesBaseName = 'AEWirelessChannel'
+
+sourceCompatibility = targetCompatibility = '1.8'
+
+minecraft {
+    version = '1.12.2-14.23.5.2847'
+    runDir = 'run'
+    mappings = 'stable_39'
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://cursemaven.com' }
+}
+
+dependencies {
+    deobfCompile 'curse.maven:applied-energistics-2-223794:2747063'
+    deobfCompile 'curse.maven:the-one-probe-245211:2667280'
+    deobfCompile 'curse.maven:ae2-stuff-225194:2491032'
+    deobfCompile 'curse.maven:bdlib-70496:2518031'
+}
+
+def generatedVersionDir = file("$buildDir/generated/sources/version/java")
+def generatedTagsFile = file("$generatedVersionDir/com/xiaotian/ae/wirelesscable/Tags.java")
+sourceSets.main.java.srcDir generatedVersionDir
+
+task generateVersionClass {
+    inputs.property 'version', project.version
+    outputs.file generatedTagsFile
+    doLast {
+        generatedTagsFile.parentFile.mkdirs()
+        generatedTagsFile.text = """\
+package com.xiaotian.ae.wirelesscable;
+
+public final class Tags {
+    public static final String VERSION = \"${project.version}\";
+
+    private Tags() {}
+}
+"""
+    }
+}
+
+compileJava.dependsOn generateVersionClass
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+processResources {
+    inputs.property 'version', project.version
+    inputs.property 'mcversion', '1.12.2'
+
+    filesMatching('mcmod.info') {
+        expand version: project.version, mcversion: '1.12.2'
+    }
+}
+
+sourceJar.enabled = false
