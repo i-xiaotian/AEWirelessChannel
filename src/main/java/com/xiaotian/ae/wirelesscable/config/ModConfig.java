@@ -25,7 +25,7 @@ public final class ModConfig {
         builder.push("general");
         FORCE_CHUNK_LOADING = builder
                 .comment("Allow wireless buses to keep their surrounding chunks loaded.")
-                .define("forceChunk", true);
+                .define("forceChunk", false);
         CHUNK_LOADING_RADIUS = builder
                 .comment("Chunk radius around each bus. 1 loads a 3x3 area.")
                 .defineInRange("loadRadius", 1, 0, 10);
