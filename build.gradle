@@ -11,7 +11,7 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle.forge'
 
 group = 'com.xiaotian.ae.wirelesscable'
-version = '1.0.0-release'
+version = '1.1.0-release'
 archivesBaseName = 'AEWirelessChannel'
 
 sourceCompatibility = targetCompatibility = '1.8'
