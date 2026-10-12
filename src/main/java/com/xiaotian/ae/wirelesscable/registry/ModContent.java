@@ -13,36 +13,35 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class ModContent {
-    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, AEWirelessChannel.MOD_ID);
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, AEWirelessChannel.MOD_ID);
-    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, AEWirelessChannel.MOD_ID);
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Registries.BLOCK, AEWirelessChannel.MOD_ID);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, AEWirelessChannel.MOD_ID);
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, AEWirelessChannel.MOD_ID);
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, AEWirelessChannel.MOD_ID);
 
-    public static final RegistryObject<Block> WIRELESS_OUTPUT_BUS = registerBus("block_wireless_output_bus", true, false);
-    public static final RegistryObject<Block> WIRELESS_INPUT_BUS = registerBus("block_wireless_input_bus", false, false);
-    public static final RegistryObject<Block> DENSE_WIRELESS_OUTPUT_BUS = registerBus("block_dense_wireless_output_bus", true, true);
-    public static final RegistryObject<Block> DENSE_WIRELESS_INPUT_BUS = registerBus("block_dense_wireless_input_bus", false, true);
+    public static final DeferredHolder<Block, Block> WIRELESS_OUTPUT_BUS = registerBus("block_wireless_output_bus", true, false);
+    public static final DeferredHolder<Block, Block> WIRELESS_INPUT_BUS = registerBus("block_wireless_input_bus", false, false);
+    public static final DeferredHolder<Block, Block> DENSE_WIRELESS_OUTPUT_BUS = registerBus("block_dense_wireless_output_bus", true, true);
+    public static final DeferredHolder<Block, Block> DENSE_WIRELESS_INPUT_BUS = registerBus("block_dense_wireless_input_bus", false, true);
 
-    public static final RegistryObject<Item> WIRELESS_KEY_CARD = ITEMS.register("item_wireless_key_card",
+    public static final DeferredHolder<Item, Item> WIRELESS_KEY_CARD = ITEMS.register("item_wireless_key_card",
             () -> new ItemWirelessKeyCard(new Item.Properties().stacksTo(1)));
 
-    public static final RegistryObject<Item> WIRELESS_OUTPUT_BUS_ITEM = registerBlockItem("block_wireless_output_bus", WIRELESS_OUTPUT_BUS);
-    public static final RegistryObject<Item> WIRELESS_INPUT_BUS_ITEM = registerBlockItem("block_wireless_input_bus", WIRELESS_INPUT_BUS);
-    public static final RegistryObject<Item> DENSE_WIRELESS_OUTPUT_BUS_ITEM = registerBlockItem("block_dense_wireless_output_bus", DENSE_WIRELESS_OUTPUT_BUS);
-    public static final RegistryObject<Item> DENSE_WIRELESS_INPUT_BUS_ITEM = registerBlockItem("block_dense_wireless_input_bus", DENSE_WIRELESS_INPUT_BUS);
+    public static final DeferredHolder<Item, Item> WIRELESS_OUTPUT_BUS_ITEM = registerBlockItem("block_wireless_output_bus", WIRELESS_OUTPUT_BUS);
+    public static final DeferredHolder<Item, Item> WIRELESS_INPUT_BUS_ITEM = registerBlockItem("block_wireless_input_bus", WIRELESS_INPUT_BUS);
+    public static final DeferredHolder<Item, Item> DENSE_WIRELESS_OUTPUT_BUS_ITEM = registerBlockItem("block_dense_wireless_output_bus", DENSE_WIRELESS_OUTPUT_BUS);
+    public static final DeferredHolder<Item, Item> DENSE_WIRELESS_INPUT_BUS_ITEM = registerBlockItem("block_dense_wireless_input_bus", DENSE_WIRELESS_INPUT_BUS);
 
-    public static final RegistryObject<BlockEntityType<WirelessBusBlockEntity>> WIRELESS_OUTPUT_BUS_ENTITY = registerBusEntity("tile_wireless_output_bus", WIRELESS_OUTPUT_BUS);
-    public static final RegistryObject<BlockEntityType<WirelessBusBlockEntity>> WIRELESS_INPUT_BUS_ENTITY = registerBusEntity("tile_wireless_input_bus", WIRELESS_INPUT_BUS);
-    public static final RegistryObject<BlockEntityType<WirelessBusBlockEntity>> DENSE_WIRELESS_OUTPUT_BUS_ENTITY = registerBusEntity("tile_dense_wireless_output_bus", DENSE_WIRELESS_OUTPUT_BUS);
-    public static final RegistryObject<BlockEntityType<WirelessBusBlockEntity>> DENSE_WIRELESS_INPUT_BUS_ENTITY = registerBusEntity("tile_dense_wireless_input_bus", DENSE_WIRELESS_INPUT_BUS);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WirelessBusBlockEntity>> WIRELESS_OUTPUT_BUS_ENTITY = registerBusEntity("tile_wireless_output_bus", WIRELESS_OUTPUT_BUS);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WirelessBusBlockEntity>> WIRELESS_INPUT_BUS_ENTITY = registerBusEntity("tile_wireless_input_bus", WIRELESS_INPUT_BUS);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WirelessBusBlockEntity>> DENSE_WIRELESS_OUTPUT_BUS_ENTITY = registerBusEntity("tile_dense_wireless_output_bus", DENSE_WIRELESS_OUTPUT_BUS);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WirelessBusBlockEntity>> DENSE_WIRELESS_INPUT_BUS_ENTITY = registerBusEntity("tile_dense_wireless_input_bus", DENSE_WIRELESS_INPUT_BUS);
 
-    public static final RegistryObject<CreativeModeTab> CREATIVE_TAB = TABS.register("main",
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> CREATIVE_TAB = TABS.register("main",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.aewirelesschannel"))
                     .icon(() -> WIRELESS_KEY_CARD.get().getDefaultInstance())
@@ -58,7 +57,7 @@ public final class ModContent {
     private ModContent() {
     }
 
-    private static RegistryObject<Block> registerBus(String id, boolean output, boolean dense) {
+    private static DeferredHolder<Block, Block> registerBus(String id, boolean output, boolean dense) {
         return BLOCKS.register(id, () -> new WirelessBusBlock(output, dense,
                 BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_GRAY)
                         .strength(1.0F, 5.0F)
@@ -66,12 +65,12 @@ public final class ModContent {
                         .isRedstoneConductor((state, level, pos) -> false)));
     }
 
-    private static RegistryObject<Item> registerBlockItem(String id, RegistryObject<Block> block) {
+    private static DeferredHolder<Item, Item> registerBlockItem(String id, DeferredHolder<Block, Block> block) {
         return ITEMS.register(id, () -> new BlockItem(block.get(), new Item.Properties()));
     }
 
-    private static RegistryObject<BlockEntityType<WirelessBusBlockEntity>> registerBusEntity(
-            String id, RegistryObject<Block> block) {
+    private static DeferredHolder<BlockEntityType<?>, BlockEntityType<WirelessBusBlockEntity>> registerBusEntity(
+            String id, DeferredHolder<Block, Block> block) {
         return BLOCK_ENTITIES.register(id,
                 () -> BlockEntityType.Builder.of(WirelessBusBlockEntity::new, block.get()).build(null));
     }

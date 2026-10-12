@@ -5,27 +5,27 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class ModConfig {
-    public static final ForgeConfigSpec SPEC;
-    public static final ForgeConfigSpec.BooleanValue FORCE_CHUNK_LOADING;
-    public static final ForgeConfigSpec.IntValue CHUNK_LOADING_RADIUS;
-    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> DISMANTLING_TOOLS;
-    public static final ForgeConfigSpec.BooleanValue REQUIRE_DISMANTLING_TOOL;
-    public static final ForgeConfigSpec.BooleanValue TOP_CONNECTION_INFO_SHOW_TYPE;
-    public static final ForgeConfigSpec.IntValue TOP_CONNECTION_INFO_SHOW_COUNT;
+    public static final ModConfigSpec SPEC;
+    public static final ModConfigSpec.BooleanValue FORCE_CHUNK_LOADING;
+    public static final ModConfigSpec.IntValue CHUNK_LOADING_RADIUS;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> DISMANTLING_TOOLS;
+    public static final ModConfigSpec.BooleanValue REQUIRE_DISMANTLING_TOOL;
+    public static final ModConfigSpec.BooleanValue TOP_CONNECTION_INFO_SHOW_TYPE;
+    public static final ModConfigSpec.IntValue TOP_CONNECTION_INFO_SHOW_COUNT;
 
     static {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
         builder.push("general");
         FORCE_CHUNK_LOADING = builder
                 .comment("Allow wireless buses to keep their surrounding chunks loaded.")
-                .define("forceChunk", false);
+                .define("forceChunk", true);
         CHUNK_LOADING_RADIUS = builder
                 .comment("Chunk radius around each bus. 1 loads a 3x3 area.")
                 .defineInRange("loadRadius", 1, 0, 10);
@@ -50,7 +50,7 @@ public final class ModConfig {
 
     public static boolean isDismantlingTool(ItemStack stack) {
         if (stack.isEmpty()) return false;
-        ResourceLocation itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (itemId == null) return false;
         for (String configured : DISMANTLING_TOOLS.get()) {
             if (configured == null || configured.isBlank()) continue;
@@ -74,7 +74,7 @@ public final class ModConfig {
                 ResourceLocation tagId = ResourceLocation.tryParse(entry.substring(1));
                 if (tagId == null) continue;
                 TagKey<Item> itemTag = TagKey.create(Registries.ITEM, tagId);
-                String exampleName = ForgeRegistries.ITEMS.getValues().stream()
+                String exampleName = BuiltInRegistries.ITEM.stream()
                         .filter(item -> item.builtInRegistryHolder().is(itemTag))
                         .map(item -> new ItemStack(item).getHoverName().getString())
                         .findFirst().orElse(tagId.toString());
@@ -83,7 +83,7 @@ public final class ModConfig {
             }
             ResourceLocation id = ResourceLocation.tryParse(entry);
             if (id == null) continue;
-            var item = ForgeRegistries.ITEMS.getValue(id);
+            var item = BuiltInRegistries.ITEM.get(id);
             if (item != null) names.add(new ItemStack(item).getHoverName().getString());
         }
         return names.stream().distinct().toList();

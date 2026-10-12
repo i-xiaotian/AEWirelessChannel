@@ -1,19 +1,21 @@
 package com.xiaotian.ae.wirelesscable.chunk;
 
-import com.mojang.datafixers.util.Pair;
 import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import com.xiaotian.ae.wirelesscable.config.ModConfig;
 import com.xiaotian.ae.wirelesscable.tile.WirelessBusBlockEntity;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.world.ForgeChunkManager;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.event.level.ChunkEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
+import net.neoforged.neoforge.common.world.chunk.TicketController;
+import net.neoforged.neoforge.common.world.chunk.TicketHelper;
+import net.neoforged.neoforge.common.world.chunk.TicketSet;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.event.TickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +26,8 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 public final class NetworkChunkLoading {
+    private static final TicketController TICKET_CONTROLLER = new TicketController(
+            new ResourceLocation(AEWirelessChannel.MOD_ID, "wireless_bus"), NetworkChunkLoading::restoreTickets);
     private static final Map<ServerLevel, Map<BlockPos, TicketState>> TICKETS = new WeakHashMap<>();
     private static final Map<ServerLevel, Integer> SHARED_CHUNK_COUNTS = new WeakHashMap<>();
     private static final Map<ServerLevel, Set<BlockPos>> PENDING_OWNER_CHECKS = new WeakHashMap<>();
@@ -31,17 +35,21 @@ public final class NetworkChunkLoading {
     private NetworkChunkLoading() {
     }
 
-    public static void restoreTickets(ServerLevel level, ForgeChunkManager.TicketHelper helper) {
+    public static void registerTicketController(RegisterTicketControllersEvent event) {
+        event.register(TICKET_CONTROLLER);
+    }
+
+    public static void restoreTickets(ServerLevel level, TicketHelper helper) {
         Map<BlockPos, TicketState> worldTickets = TICKETS.computeIfAbsent(level, ignored -> new HashMap<>());
-        for (Map.Entry<BlockPos, Pair<LongSet, LongSet>> entry : new ArrayList<>(helper.getBlockTickets().entrySet())) {
+        for (Map.Entry<BlockPos, TicketSet> entry : new ArrayList<>(helper.getBlockTickets().entrySet())) {
             BlockPos owner = entry.getKey();
             if (!ModConfig.FORCE_CHUNK_LOADING.get()) {
                 helper.removeAllTickets(owner);
                 continue;
             }
             Set<Long> chunks = new HashSet<>();
-            chunks.addAll(entry.getValue().getFirst());
-            chunks.addAll(entry.getValue().getSecond());
+            chunks.addAll(entry.getValue().nonTicking());
+            chunks.addAll(entry.getValue().ticking());
             worldTickets.put(owner, new TicketState(chunks));
         }
         updateSharedCount(level, worldTickets);
@@ -63,9 +71,9 @@ public final class NetworkChunkLoading {
         if (!state.chunks.equals(desired)) {
             for (long previous : new HashSet<>(state.chunks)) {
                 if (!desired.contains(previous)) {
-                    ForgeChunkManager.forceChunk(level, AEWirelessChannel.MOD_ID, owner,
+                    TICKET_CONTROLLER.forceChunk(level, owner,
                             ChunkPos.getX(previous), ChunkPos.getZ(previous), false, true);
-                    ForgeChunkManager.forceChunk(level, AEWirelessChannel.MOD_ID, owner,
+                    TICKET_CONTROLLER.forceChunk(level, owner,
                             ChunkPos.getX(previous), ChunkPos.getZ(previous), false, false);
                     state.chunks.remove(previous);
                     changed = true;
@@ -73,7 +81,7 @@ public final class NetworkChunkLoading {
             }
             for (long chunk : desired) {
                 if (state.chunks.contains(chunk)) continue;
-                boolean forced = ForgeChunkManager.forceChunk(level, AEWirelessChannel.MOD_ID, owner,
+                boolean forced = TICKET_CONTROLLER.forceChunk(level, owner,
                         ChunkPos.getX(chunk), ChunkPos.getZ(chunk), true, true);
                 if (forced) {
                     state.chunks.add(chunk);
@@ -98,9 +106,9 @@ public final class NetworkChunkLoading {
         TicketState state = worldTickets == null ? null : worldTickets.remove(owner);
         Set<Long> chunks = state == null ? getDesiredChunks(owner, ModConfig.CHUNK_LOADING_RADIUS.get()) : state.chunks;
         for (long chunk : chunks) {
-            ForgeChunkManager.forceChunk(level, AEWirelessChannel.MOD_ID, owner,
+            TICKET_CONTROLLER.forceChunk(level, owner,
                     ChunkPos.getX(chunk), ChunkPos.getZ(chunk), false, true);
-            ForgeChunkManager.forceChunk(level, AEWirelessChannel.MOD_ID, owner,
+            TICKET_CONTROLLER.forceChunk(level, owner,
                     ChunkPos.getX(chunk), ChunkPos.getZ(chunk), false, false);
         }
         if (worldTickets != null) {

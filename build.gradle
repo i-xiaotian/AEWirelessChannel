@@ -1,40 +1,25 @@
 plugins {
-    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'net.neoforged.gradle.userdev' version '7.0.192'
     id 'eclipse'
     id 'maven-publish'
 }
 
 group = 'com.xiaotian.ae.wirelesscable'
-version = '1.1.0+mc1.20.1'
+version = '1.2.0+mc1.20.2'
 base.archivesName = 'AEWirelessChannel'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-minecraft {
-    mappings channel: 'official', version: '1.20.1'
-
-    runs {
-        configureEach {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'info'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
-
-            mods {
-                aewirelesschannel {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        client {}
-        server {}
+runs {
+    configureEach {
+        workingDirectory project.file('run')
+        systemProperty 'forge.logging.markers', 'REGISTRIES'
+        systemProperty 'forge.logging.console.level', 'info'
+        modSource project.sourceSets.main
     }
-}
 
-tasks.matching { it.name in ['runClient', 'runServer'] }.configureEach {
-    dependsOn 'createSrgToMcp'
+    client {}
+    server {}
 }
 
 repositories {
@@ -43,11 +28,9 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.20.1-47.3.0'
-    implementation fg.deobf('appeng:appliedenergistics2-forge:15.4.11')
-    implementation fg.deobf('maven.modrinth:guideme:20.1.7')
-    implementation fg.deobf('maven.modrinth:the-one-probe:1.20.1-10.0.4')
-    implementation fg.deobf('maven.modrinth:jade:11.13.3+forge')
+    implementation 'net.neoforged:neoforge:20.2.93'
+    implementation 'appeng:appliedenergistics2-neoforge:16.0.2'
+    implementation 'maven.modrinth:jade:12.4.0'
 }
 
 tasks.withType(JavaCompile).configureEach {

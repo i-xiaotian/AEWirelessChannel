@@ -1,8 +1,8 @@
 package com.xiaotian.ae.wirelesscable.config;
 
 import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,7 +42,7 @@ public final class LegacyConfigMigration {
             }
             event.getConfig().save();
             archiveOldFile(oldFile);
-            AEWirelessChannel.LOGGER.info("Migrated settings from {} to the 1.20.1 config", oldFile.getFileName());
+            AEWirelessChannel.LOGGER.info("Migrated settings from {} to the NeoForge config", oldFile.getFileName());
         } catch (IOException exception) {
             AEWirelessChannel.LOGGER.error("Could not migrate legacy config {}", oldFile, exception);
         }

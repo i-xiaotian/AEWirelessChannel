@@ -14,10 +14,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.neoforged.neoforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.NetworkRegistry;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.simple.SimpleChannel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -90,8 +90,7 @@ public final class WirelessLinkNetwork {
         snapshot = null;
     }
 
-    private static void handleRequest(Request message, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
+    private static void handleRequest(Request message, NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
         context.enqueueWork(() -> {
             if (player != null) respond(player, message);
@@ -151,8 +150,7 @@ public final class WirelessLinkNetwork {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), response);
     }
 
-    private static void handleResponse(Response response, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context context = contextSupplier.get();
+    private static void handleResponse(Response response, NetworkEvent.Context context) {
         context.enqueueWork(() -> {
             if (response.id != latestRequestId) return;
             Selection current = selection;
