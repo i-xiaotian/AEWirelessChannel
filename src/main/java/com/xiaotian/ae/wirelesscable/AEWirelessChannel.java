@@ -1,46 +1,51 @@
 package com.xiaotian.ae.wirelesscable;
 
-import com.xiaotian.ae.wirelesscable.proxy.CommonProxy;
-import net.minecraftforge.common.config.Config;
-import net.minecraftforge.common.config.ConfigManager;
+import com.mojang.logging.LogUtils;
+import com.xiaotian.ae.wirelesscable.chunk.NetworkChunkLoading;
+import com.xiaotian.ae.wirelesscable.config.ModConfig;
+import com.xiaotian.ae.wirelesscable.config.LegacyConfigMigration;
+import com.xiaotian.ae.wirelesscable.network.WirelessLinkNetwork;
+import com.xiaotian.ae.wirelesscable.registry.ModContent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.world.ForgeChunkManager;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import org.apache.logging.log4j.Logger;
+import net.minecraftforge.fml.config.ModConfig.Type;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import org.slf4j.Logger;
 
-@Mod(modid = AEWirelessChannel.MOD_ID, name = AEWirelessChannel.MOD_NAME, version = AEWirelessChannel.VERSION,
-        dependencies = "required-after:forge@[14.21.0.2371,);" +
-                "after:appliedenergistics2@[rv6-stable-7,);",
-        acceptedMinecraftVersions = "[1.12, 1.13)")
-@SuppressWarnings("unused")
-public class AEWirelessChannel {
-
+@Mod(AEWirelessChannel.MOD_ID)
+public final class AEWirelessChannel {
     public static final String MOD_ID = "aewirelesschannel";
-    public static final String MOD_NAME = "AE-Wireless-Channel";
-    public static final String VERSION = Tags.VERSION;
-    private static final String COMMON_PROXY = "com.xiaotian.ae.wirelesscable.proxy.CommonProxy";
-    private static final String CLIENT_PROXY = "com.xiaotian.ae.wirelesscable.proxy.ClientProxy";
+    public static final String MOD_NAME = "AE2 Wireless Channel";
+    public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static AEWirelessChannel instance;
-
-    public static Logger log;
-
-    @SidedProxy(clientSide = CLIENT_PROXY, serverSide = COMMON_PROXY)
-    public static CommonProxy proxy;
-
-    @Mod.EventHandler
-    public void preInit(FMLPreInitializationEvent event) {
-        log = event.getModLog();
-        instance = this;
-        event.getModMetadata().version = VERSION;
-        ConfigManager.sync(MOD_ID, Config.Type.INSTANCE);
-        proxy.preInit();
+    public AEWirelessChannel() {
+        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+        ModContent.register(modBus);
+        ModLoadingContext.get().registerConfig(Type.COMMON, ModConfig.SPEC);
+        modBus.addListener(this::commonSetup);
+        modBus.addListener(this::enqueueOptionalIntegrations);
+        modBus.addListener(LegacyConfigMigration::onConfigLoading);
+        MinecraftForge.EVENT_BUS.register(NetworkChunkLoading.class);
+        ForgeChunkManager.setForcedChunkLoadingCallback(MOD_ID, NetworkChunkLoading::restoreTickets);
     }
 
-    @Mod.EventHandler
-    public void init(FMLInitializationEvent event) {
-        proxy.init();
+    private void commonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(WirelessLinkNetwork::register);
     }
 
+    private void enqueueOptionalIntegrations(InterModEnqueueEvent event) {
+        if (!ModList.get().isLoaded("theoneprobe")) return;
+        try {
+            Class.forName("com.xiaotian.ae.wirelesscable.integration.top.TopIntegration")
+                    .getMethod("enqueue").invoke(null);
+        } catch (ReflectiveOperationException exception) {
+            LOGGER.error("Failed to enqueue The One Probe integration", exception);
+        }
+    }
 }

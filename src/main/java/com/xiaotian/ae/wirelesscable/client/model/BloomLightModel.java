@@ -1,124 +1,77 @@
 package com.xiaotian.ae.wirelesscable.client.model;
 
-import com.xiaotian.ae.wirelesscable.block.IBloomTexture;
-import com.xiaotian.ae.wirelesscable.util.RenderUtils;
-import mcp.MethodsReturnNonnullByDefault;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.block.model.ItemOverrideList;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.vertex.VertexFormat;
-import net.minecraft.util.EnumFacing;
-import net.minecraftforge.client.model.pipeline.UnpackedBakedQuad;
-import net.minecraftforge.client.model.pipeline.VertexLighterFlat;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.client.model.BakedModelWrapper;
+import net.minecraftforge.client.model.data.ModelData;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
-import static com.xiaotian.ae.wirelesscable.AEWirelessChannel.log;
+public final class BloomLightModel extends BakedModelWrapper<BakedModel> {
+    private static final String BLOOM_TEXTURE_PATH = "block/bloom/";
+    private static final int BLOCK_VERTEX_SIZE = DefaultVertexFormat.BLOCK.getIntegerSize();
+    private static final int LIGHTMAP_OFFSET = findLightmapOffset();
 
-@MethodsReturnNonnullByDefault
-@SuppressWarnings("deprecation")
-public class BloomLightModel implements IBakedModel {
+    private final ConcurrentMap<BakedQuad, BakedQuad> fullBrightQuads = new ConcurrentHashMap<>();
 
-    private static final float MAX_LIGHT = 0.007f;
-    private final IBakedModel base;
-
-    private final Map<BakedQuad, BakedQuad> cache = new IdentityHashMap<>();
-
-    public BloomLightModel(IBakedModel base) {
-        this.base = base;
+    public BloomLightModel(BakedModel originalModel) {
+        super(originalModel);
     }
 
     @Override
-    public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
-        List<BakedQuad> originalQuads = base.getQuads(state, side, rand);
-        final Block block = state.getBlock();
-        if (!(block instanceof IBloomTexture)) return originalQuads;
-        final IBloomTexture iBloomTexture = (IBloomTexture) block;
-        List<BakedQuad> quads = new ArrayList<>(originalQuads.size());
+    public List<BakedQuad> getQuads(BlockState state, Direction side, RandomSource random) {
+        return makeBloomQuadsFullBright(originalModel.getQuads(state, side, random));
+    }
 
-        for (BakedQuad quad : originalQuads) {
-            String name = quad.getSprite().getIconName();
-            if (name.endsWith(iBloomTexture.getBloomTextureEndWith())) {
-                BakedQuad brightQuad = cache.get(quad);
-                if (Objects.isNull(brightQuad)) {
-                    brightQuad = makeFullBrightQuad(quad);
-                    cache.put(quad, brightQuad);
-                }
-                quads.add(brightQuad);
-            } else {
-                quads.add(quad);
-            }
+    @Override
+    public List<BakedQuad> getQuads(BlockState state, Direction side, RandomSource random,
+                                    ModelData modelData, RenderType renderType) {
+        return makeBloomQuadsFullBright(originalModel.getQuads(state, side, random, modelData, renderType));
+    }
+
+    private List<BakedQuad> makeBloomQuadsFullBright(List<BakedQuad> originalQuads) {
+        List<BakedQuad> result = null;
+        for (int i = 0; i < originalQuads.size(); i++) {
+            BakedQuad quad = originalQuads.get(i);
+            if (!isBloomTexture(quad.getSprite())) continue;
+
+            if (result == null) result = new ArrayList<>(originalQuads);
+            result.set(i, fullBrightQuads.computeIfAbsent(quad, BloomLightModel::makeFullBright));
         }
-        return quads;
+        return result == null ? originalQuads : List.copyOf(result);
     }
 
-
-
-    private BakedQuad makeFullBrightQuad(BakedQuad quad) {
-        if (RenderUtils.isLightMapDisabled()) return quad;
-
-        VertexFormat newFormat = RenderUtils.getFormatWithLightMap(quad.getFormat());
-        UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(newFormat);
-
-        builder.setQuadTint(quad.getTintIndex());
-        builder.setQuadOrientation(quad.getFace());
-        builder.setTexture(quad.getSprite());
-        builder.setApplyDiffuseLighting(false);
-
-        final VertexLighterFlat trans = this.getVertexLighterFlat(builder);
-        quad.pipe(trans);
-
-        return builder.build();
+    private static boolean isBloomTexture(TextureAtlasSprite sprite) {
+        return sprite.contents().name().getNamespace().equals(AEWirelessChannel.MOD_ID)
+                && sprite.contents().name().getPath().startsWith(BLOOM_TEXTURE_PATH);
     }
 
-    private VertexLighterFlat getVertexLighterFlat(final UnpackedBakedQuad.Builder builder) {
-        VertexLighterFlat trans = new VertexLighterFlat(Minecraft.getMinecraft().getBlockColors()) {
-            @Override
-            @ParametersAreNonnullByDefault
-            protected void updateLightmap(float[] normal, float[] lightMap, float x, float y, float z) {
-                lightMap[0] = MAX_LIGHT;
-                lightMap[1] = MAX_LIGHT;
-            }
+    private static BakedQuad makeFullBright(BakedQuad quad) {
+        int[] originalVertices = quad.getVertices();
+        if (LIGHTMAP_OFFSET < 0 || originalVertices.length % BLOCK_VERTEX_SIZE != 0) return quad;
 
-        };
-        trans.setParent(builder);
-        return trans;
+        int[] vertices = originalVertices.clone();
+        for (int vertex = 0; vertex < vertices.length; vertex += BLOCK_VERTEX_SIZE) {
+            vertices[vertex + LIGHTMAP_OFFSET] = LightTexture.FULL_BRIGHT;
+        }
+
+        return new BakedQuad(vertices, quad.getTintIndex(), quad.getDirection(), quad.getSprite(),
+                quad.isShade(), quad.hasAmbientOcclusion());
     }
 
-    @Override
-    public boolean isAmbientOcclusion() {
-        return base.isAmbientOcclusion();
+    private static int findLightmapOffset() {
+        int elementIndex = DefaultVertexFormat.BLOCK.getElements().indexOf(DefaultVertexFormat.ELEMENT_UV2);
+        return elementIndex < 0 ? -1 : DefaultVertexFormat.BLOCK.getOffset(elementIndex) / Integer.BYTES;
     }
-
-    @Override
-    public boolean isGui3d() {
-        return base.isGui3d();
-    }
-
-    @Override
-    public boolean isBuiltInRenderer() {
-        return base.isBuiltInRenderer();
-    }
-
-    @Override
-    public TextureAtlasSprite getParticleTexture() {
-        return base.getParticleTexture();
-    }
-
-    @Override
-    public ItemCameraTransforms getItemCameraTransforms() {
-        return base.getItemCameraTransforms();
-    }
-
-    @Override
-    public ItemOverrideList getOverrides() {
-        return base.getOverrides();
-    }
-
 }

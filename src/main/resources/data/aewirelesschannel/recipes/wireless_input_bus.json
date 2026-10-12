@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["CWC", "RLR", "CPE"],
+  "key": {
+    "C": { "item": "ae2:certus_quartz_crystal" },
+    "W": { "item": "ae2:wireless_receiver" },
+    "R": { "item": "minecraft:redstone" },
+    "L": { "item": "ae2:calculation_processor" },
+    "P": { "item": "ae2:import_bus" },
+    "E": { "item": "ae2:quartz_fiber" }
+  },
+  "result": { "item": "aewirelesschannel:block_wireless_input_bus" }
+}

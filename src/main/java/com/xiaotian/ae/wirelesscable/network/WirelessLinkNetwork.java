@@ -1,334 +1,273 @@
 package com.xiaotian.ae.wirelesscable.network;
 
 import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
+import com.xiaotian.ae.wirelesscable.block.WirelessBusBlock;
 import com.xiaotian.ae.wirelesscable.entity.ConnectionInfo;
-import com.xiaotian.ae.wirelesscable.registry.Items;
-import com.xiaotian.ae.wirelesscable.tile.TileWirelessBus;
-import com.xiaotian.ae.wirelesscable.tile.TileWirelessInputBus;
-import com.xiaotian.ae.wirelesscable.tile.TileWirelessOutputBus;
-import io.netty.buffer.ByteBuf;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.IThreadListener;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
-import net.minecraftforge.fml.relauncher.Side;
+import com.xiaotian.ae.wirelesscable.registry.ModContent;
+import com.xiaotian.ae.wirelesscable.tile.WirelessBusBlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.simple.SimpleChannel;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 public final class WirelessLinkNetwork {
-
+    private static final String PROTOCOL = "2";
     private static final int MAX_LINKS = 128;
-    private static final SimpleNetworkWrapper CHANNEL = NetworkRegistry.INSTANCE.newSimpleChannel(AEWirelessChannel.MOD_ID);
+    private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
+            .named(new ResourceLocation(AEWirelessChannel.MOD_ID, "main"))
+            .networkProtocolVersion(() -> PROTOCOL)
+            .clientAcceptedVersions(PROTOCOL::equals)
+            .serverAcceptedVersions(PROTOCOL::equals)
+            .simpleChannel();
     private static final AtomicInteger REQUEST_IDS = new AtomicInteger();
+    private static final Map<UUID, UUID> AUTHORIZED_OUTPUTS = new WeakHashMap<>();
     private static volatile int latestRequestId;
-    private static volatile Snapshot snapshot;
     private static volatile Selection selection;
-    private static boolean initialized;
+    private static volatile Snapshot snapshot;
 
     private WirelessLinkNetwork() {
     }
 
-    public static void initialize() {
-        if (initialized) return;
-        CHANNEL.registerMessage(RequestHandler.class, RequestMessage.class, 0, Side.SERVER);
-        CHANNEL.registerMessage(ResponseHandler.class, ResponseMessage.class, 1, Side.CLIENT);
-        initialized = true;
+    public static void register() {
+        CHANNEL.messageBuilder(Request.class, 0)
+                .encoder(Request::encode)
+                .decoder(Request::decode)
+                .consumerMainThread(WirelessLinkNetwork::handleRequest)
+                .add();
+        CHANNEL.messageBuilder(Response.class, 1)
+                .encoder(Response::encode)
+                .decoder(Response::decode)
+                .consumerMainThread(WirelessLinkNetwork::handleResponse)
+                .add();
     }
 
-    public static void requestVisualization(final BlockPos pos, final EnumHand hand, final int dimension) {
-        selection = new Selection(pos, hand, dimension);
+    public static void select(BlockPos pos, InteractionHand hand, UUID outputId) {
+        Selection current = new Selection(pos, hand, outputId);
+        selection = current;
         snapshot = null;
-        sendRequest(pos, hand, dimension, false, null);
+        send(current);
     }
 
-    public static void refreshVisualization() {
-        final Selection current = selection;
-        if (current != null) sendRequest(current.pos, current.hand, current.dimension, true, current.outputBusId);
+    public static void refresh() {
+        Selection current = selection;
+        if (current != null) send(current);
     }
 
-    private static void sendRequest(final BlockPos pos, final EnumHand hand, final int dimension,
-                                   final boolean silent, final String outputBusId) {
-        final int requestId = REQUEST_IDS.incrementAndGet();
+    private static void send(Selection current) {
+        int requestId = REQUEST_IDS.incrementAndGet();
         latestRequestId = requestId;
-        CHANNEL.sendToServer(new RequestMessage(requestId, pos, hand, dimension, silent, outputBusId));
+        CHANNEL.sendToServer(new Request(requestId, current.pos, current.hand, current.outputId));
     }
 
     public static Selection getSelection() {
         return selection;
     }
 
-    public static Snapshot getSnapshot(final int dimension) {
-        final Snapshot current = snapshot;
-        if (current == null) return null;
-        return current.dimension == dimension ? current : null;
+    public static Snapshot getSnapshot(ResourceLocation dimension) {
+        Snapshot current = snapshot;
+        return current != null && current.dimension.equals(dimension) ? current : null;
     }
 
     public static void clearSnapshot() {
         snapshot = null;
     }
 
-    public static void clearSelection() {
-        selection = null;
-        snapshot = null;
+    private static void handleRequest(Request message, Supplier<NetworkEvent.Context> contextSupplier) {
+        NetworkEvent.Context context = contextSupplier.get();
+        ServerPlayer player = context.getSender();
+        context.enqueueWork(() -> {
+            if (player != null) respond(player, message);
+        });
+        context.setPacketHandled(true);
     }
 
-    private static void acceptResponse(final ResponseMessage response) {
-        if (response.requestId != latestRequestId) return;
-        final Selection currentSelection = selection;
-        if (currentSelection != null && response.outputBusId != null) {
-            currentSelection.outputBusId = response.outputBusId;
+    private static void respond(ServerPlayer player, Request request) {
+        ItemStack held = player.getItemInHand(request.hand);
+        if (held.isEmpty() || held.getItem() != ModContent.WIRELESS_KEY_CARD.get()) return;
+        Level level = player.level();
+        WirelessBusBlockEntity output = null;
+        if (request.outputId != null) {
+            UUID boundId = getBoundOutputId(held);
+            UUID authorized = AUTHORIZED_OUTPUTS.get(player.getUUID());
+            if (!request.outputId.equals(boundId) && !request.outputId.equals(authorized)) return;
+            output = WirelessBusBlockEntity.findLoadedOutput((net.minecraft.server.level.ServerLevel) level, request.outputId);
+            if (output == null && level.hasChunkAt(request.pos)) {
+                BlockEntity entity = level.getBlockEntity(request.pos);
+                if (entity instanceof WirelessBusBlockEntity bus && bus.isOutput()
+                        && request.outputId.equals(bus.getOutputBusId())) output = bus;
+            }
+        } else if (level.hasChunkAt(request.pos)) {
+            BlockEntity entity = level.getBlockEntity(request.pos);
+            if (entity instanceof WirelessBusBlockEntity bus && bus.isOutput()
+                    && player.distanceToSqr(request.pos.getX() + 0.5, request.pos.getY() + 0.5,
+                    request.pos.getZ() + 0.5) <= 64.0) {
+                output = bus;
+                AUTHORIZED_OUTPUTS.put(player.getUUID(), bus.getOutputBusId());
+            }
         }
-        if (response.links.isEmpty()) {
-            snapshot = null;
-        } else {
-            snapshot = new Snapshot(response.dimension, response.links);
+
+        if (output == null) {
+            sendResponse(player, new Response(request.id, level.dimension().location(), null, null, List.of()));
+            return;
         }
+
+        List<Link> links = new ArrayList<>();
+        for (ConnectionInfo info : output.getOutputConnections()) {
+            if (links.size() >= MAX_LINKS) break;
+            links.add(new Link(output.getBlockPos(), info.inputPos()));
+        }
+        if (links.isEmpty()) {
+            player.displayClientMessage(Component.translatable("message.aewirelesschannel.connection_card_no_connections"), true);
+        }
+        sendResponse(player, new Response(request.id, level.dimension().location(), output.getOutputBusId(),
+                output.getBlockPos(), links));
     }
 
-    private static List<Link> findLinks(final World world, final TileWirelessBus bus) {
-        final List<Link> links = new ArrayList<>();
-        if (bus instanceof TileWirelessInputBus) {
-            final ConnectionInfo connection = ((TileWirelessInputBus) bus).getCurrentConnection();
-            if (connection.isConnect()) {
-                links.add(new Link(
-                        new BlockPos(connection.getOutputBusX(), connection.getOutputBusY(), connection.getOutputBusZ()),
-                        bus.getPos()));
-            }
-        } else if (bus instanceof TileWirelessOutputBus) {
-            final TileWirelessOutputBus outputBus = (TileWirelessOutputBus) bus;
-            for (ConnectionInfo connection : outputBus.getSubGridConnectionMap().values()) {
-                if (connection == null || !connection.isConnect()) continue;
-                final BlockPos inputPos = outputBus.getConnectionInputBusPosInfo(connection.getConnectionKey());
-                if (world.isBlockLoaded(inputPos)) {
-                    final TileEntity inputEntity = world.getTileEntity(inputPos);
-                    if (!(inputEntity instanceof TileWirelessInputBus)) continue;
-                    final ConnectionInfo liveConnection = ((TileWirelessInputBus) inputEntity).getCurrentConnection();
-                    if (!liveConnection.isConnect()
-                            || !connection.getConnectionKey().equals(liveConnection.getConnectionKey())
-                            || liveConnection.getOutputBusX() != bus.getPos().getX()
-                            || liveConnection.getOutputBusY() != bus.getPos().getY()
-                            || liveConnection.getOutputBusZ() != bus.getPos().getZ()) continue;
-                    links.add(new Link(bus.getPos(), inputEntity.getPos()));
-                } else {
-                    links.add(new Link(bus.getPos(), inputPos));
-                }
-                if (links.size() >= MAX_LINKS) break;
-            }
-        }
-        return links;
+    private static UUID getBoundOutputId(ItemStack stack) {
+        var bound = stack.getTagElement(WirelessBusBlock.OUTPUT_BOUND_TAG);
+        return bound != null && bound.hasUUID(WirelessBusBlock.OUTPUT_ID_TAG)
+                ? bound.getUUID(WirelessBusBlock.OUTPUT_ID_TAG) : null;
+    }
+
+    private static void sendResponse(ServerPlayer player, Response response) {
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), response);
+    }
+
+    private static void handleResponse(Response response, Supplier<NetworkEvent.Context> contextSupplier) {
+        NetworkEvent.Context context = contextSupplier.get();
+        context.enqueueWork(() -> {
+            if (response.id != latestRequestId) return;
+            Selection current = selection;
+            if (current != null && response.outputId != null) current.outputId = response.outputId;
+            snapshot = response.outputPos == null ? null
+                    : new Snapshot(response.dimension, response.outputPos, response.links);
+        });
+        context.setPacketHandled(true);
     }
 
     public static final class Link {
-        public final BlockPos outputBus;
-        public final BlockPos inputBus;
+        public final BlockPos output;
+        public final BlockPos input;
 
-        private Link(final BlockPos outputBus, final BlockPos inputBus) {
-            this.outputBus = outputBus;
-            this.inputBus = inputBus;
+        private Link(BlockPos output, BlockPos input) {
+            this.output = output.immutable();
+            this.input = input.immutable();
         }
     }
 
     public static final class Snapshot {
-        public final int dimension;
+        public final ResourceLocation dimension;
+        public final BlockPos output;
         public final List<Link> links;
 
-        private Snapshot(final int dimension, final List<Link> links) {
+        private Snapshot(ResourceLocation dimension, BlockPos output, List<Link> links) {
             this.dimension = dimension;
+            this.output = output.immutable();
             this.links = Collections.unmodifiableList(new ArrayList<>(links));
-        }
-    }
-
-    public static final class RequestMessage implements IMessage {
-        private int requestId;
-        private BlockPos pos;
-        private EnumHand hand;
-        private int dimension;
-        private boolean silent;
-        private String outputBusId;
-
-        public RequestMessage() {
-        }
-
-        private RequestMessage(final int requestId, final BlockPos pos, final EnumHand hand,
-                               final int dimension, final boolean silent, final String outputBusId) {
-            this.requestId = requestId;
-            this.pos = pos;
-            this.hand = hand;
-            this.dimension = dimension;
-            this.silent = silent;
-            this.outputBusId = outputBusId;
-        }
-
-        @Override
-        public void fromBytes(final ByteBuf buffer) {
-            requestId = buffer.readInt();
-            pos = new BlockPos(buffer.readInt(), buffer.readInt(), buffer.readInt());
-            final int handIndex = buffer.readUnsignedByte();
-            hand = handIndex < EnumHand.values().length ? EnumHand.values()[handIndex] : EnumHand.MAIN_HAND;
-            dimension = buffer.readInt();
-            silent = buffer.readBoolean();
-            outputBusId = buffer.readBoolean() ? ByteBufUtils.readUTF8String(buffer) : null;
-        }
-
-        @Override
-        public void toBytes(final ByteBuf buffer) {
-            buffer.writeInt(requestId);
-            buffer.writeInt(pos.getX());
-            buffer.writeInt(pos.getY());
-            buffer.writeInt(pos.getZ());
-            buffer.writeByte(hand.ordinal());
-            buffer.writeInt(dimension);
-            buffer.writeBoolean(silent);
-            buffer.writeBoolean(outputBusId != null);
-            if (outputBusId != null) ByteBufUtils.writeUTF8String(buffer, outputBusId);
-        }
-    }
-
-    public static final class ResponseMessage implements IMessage {
-        private int requestId;
-        private int dimension;
-        private List<Link> links = Collections.emptyList();
-        private String outputBusId;
-
-        public ResponseMessage() {
-        }
-
-        private ResponseMessage(final int requestId, final int dimension, final String outputBusId,
-                                final List<Link> links) {
-            this.requestId = requestId;
-            this.dimension = dimension;
-            this.outputBusId = outputBusId;
-            this.links = links;
-        }
-
-        @Override
-        public void fromBytes(final ByteBuf buffer) {
-            requestId = buffer.readInt();
-            dimension = buffer.readInt();
-            outputBusId = buffer.readBoolean() ? ByteBufUtils.readUTF8String(buffer) : null;
-            final int count = Math.min(buffer.readUnsignedShort(), MAX_LINKS);
-            final List<Link> decoded = new ArrayList<>(count);
-            for (int index = 0; index < count; index++) {
-                final BlockPos output = new BlockPos(buffer.readInt(), buffer.readInt(), buffer.readInt());
-                final BlockPos input = new BlockPos(buffer.readInt(), buffer.readInt(), buffer.readInt());
-                decoded.add(new Link(output, input));
-            }
-            links = decoded;
-        }
-
-        @Override
-        public void toBytes(final ByteBuf buffer) {
-            final int count = Math.min(links.size(), MAX_LINKS);
-            buffer.writeInt(requestId);
-            buffer.writeInt(dimension);
-            buffer.writeBoolean(outputBusId != null);
-            if (outputBusId != null) ByteBufUtils.writeUTF8String(buffer, outputBusId);
-            buffer.writeShort(count);
-            for (int index = 0; index < count; index++) {
-                final Link link = links.get(index);
-                buffer.writeInt(link.outputBus.getX());
-                buffer.writeInt(link.outputBus.getY());
-                buffer.writeInt(link.outputBus.getZ());
-                buffer.writeInt(link.inputBus.getX());
-                buffer.writeInt(link.inputBus.getY());
-                buffer.writeInt(link.inputBus.getZ());
-            }
-        }
-    }
-
-    public static final class RequestHandler implements IMessageHandler<RequestMessage, IMessage> {
-        @Override
-        public IMessage onMessage(final RequestMessage message, final MessageContext context) {
-            final EntityPlayerMP player = context.getServerHandler().player;
-            final IThreadListener serverThread = FMLCommonHandler.instance().getWorldThread(context.netHandler);
-            serverThread.addScheduledTask(() -> handleRequest(player, message));
-            return null;
-        }
-
-        private static void handleRequest(final EntityPlayerMP player, final RequestMessage message) {
-            final ItemStack held = player.getHeldItem(message.hand);
-            if (held.isEmpty() || held.getItem() != Items.ITEM_WIRELESS_KEY_CARD) return;
-            if (player.world.provider.getDimension() != message.dimension) return;
-
-            final World world = player.world;
-            TileWirelessBus bus = null;
-            if (message.outputBusId != null) {
-                bus = TileWirelessOutputBus.findLoaded(world, message.outputBusId);
-                if (bus == null && world.isBlockLoaded(message.pos)) {
-                    final TileEntity selectedTile = world.getTileEntity(message.pos);
-                    if (selectedTile instanceof TileWirelessOutputBus
-                            && message.outputBusId.equals(((TileWirelessOutputBus) selectedTile).getOutputBusId())) {
-                        bus = (TileWirelessOutputBus) selectedTile;
-                    }
-                }
-            } else if (world.isBlockLoaded(message.pos)) {
-                final TileEntity tile = world.getTileEntity(message.pos);
-                if (tile instanceof TileWirelessBus) bus = (TileWirelessBus) tile;
-            }
-
-            if (bus == null) {
-                if (message.outputBusId == null && (message.silent || world.isBlockLoaded(message.pos))) {
-                    CHANNEL.sendTo(new ResponseMessage(message.requestId, world.provider.getDimension(),
-                            null, Collections.emptyList()), player);
-                } else if (message.outputBusId != null && world.isBlockLoaded(message.pos)) {
-                    CHANNEL.sendTo(new ResponseMessage(message.requestId, world.provider.getDimension(),
-                            message.outputBusId, Collections.emptyList()), player);
-                }
-                return;
-            }
-
-            final BlockPos busPos = bus.getPos();
-            if (message.outputBusId == null && player.getDistanceSq(busPos.getX() + 0.5, busPos.getY() + 0.5,
-                    busPos.getZ() + 0.5) > 64.0) {
-                return;
-            }
-
-            final List<Link> links = findLinks(world, bus);
-            if (links.isEmpty() && !message.silent) {
-                player.sendMessage(new TextComponentTranslation(
-                        "message.aewirelesschannel.connection_card_no_connections"));
-            }
-            final String outputBusId = bus instanceof TileWirelessOutputBus
-                    ? ((TileWirelessOutputBus) bus).getOutputBusId() : null;
-            CHANNEL.sendTo(new ResponseMessage(message.requestId, world.provider.getDimension(),
-                    outputBusId, links), player);
-        }
-    }
-
-    public static final class ResponseHandler implements IMessageHandler<ResponseMessage, IMessage> {
-        @Override
-        public IMessage onMessage(final ResponseMessage message, final MessageContext context) {
-            final IThreadListener clientThread = FMLCommonHandler.instance().getWorldThread(context.netHandler);
-            clientThread.addScheduledTask(() -> acceptResponse(message));
-            return null;
         }
     }
 
     public static final class Selection {
         public final BlockPos pos;
-        public final EnumHand hand;
-        public final int dimension;
-        private String outputBusId;
+        public final InteractionHand hand;
+        private UUID outputId;
 
-        private Selection(final BlockPos pos, final EnumHand hand, final int dimension) {
+        private Selection(BlockPos pos, InteractionHand hand, UUID outputId) {
+            this.pos = pos.immutable();
+            this.hand = hand;
+            this.outputId = outputId;
+        }
+    }
+
+    private static final class Request {
+        private final int id;
+        private final BlockPos pos;
+        private final InteractionHand hand;
+        private final UUID outputId;
+
+        private Request(int id, BlockPos pos, InteractionHand hand, UUID outputId) {
+            this.id = id;
             this.pos = pos;
             this.hand = hand;
+            this.outputId = outputId;
+        }
+
+        private void encode(FriendlyByteBuf buffer) {
+            buffer.writeInt(id);
+            buffer.writeBlockPos(pos);
+            buffer.writeByte(hand.ordinal());
+            buffer.writeBoolean(outputId != null);
+            if (outputId != null) buffer.writeUUID(outputId);
+        }
+
+        private static Request decode(FriendlyByteBuf buffer) {
+            int id = buffer.readInt();
+            BlockPos pos = buffer.readBlockPos();
+            int handIndex = buffer.readUnsignedByte();
+            InteractionHand hand = handIndex == InteractionHand.OFF_HAND.ordinal()
+                    ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+            UUID outputId = buffer.readBoolean() ? buffer.readUUID() : null;
+            return new Request(id, pos, hand, outputId);
+        }
+    }
+
+    private static final class Response {
+        private final int id;
+        private final ResourceLocation dimension;
+        private final UUID outputId;
+        private final BlockPos outputPos;
+        private final List<Link> links;
+
+        private Response(int id, ResourceLocation dimension, UUID outputId, BlockPos outputPos, List<Link> links) {
+            this.id = id;
             this.dimension = dimension;
-            this.outputBusId = null;
+            this.outputId = outputId;
+            this.outputPos = outputPos == null ? null : outputPos.immutable();
+            this.links = List.copyOf(links);
+        }
+
+        private void encode(FriendlyByteBuf buffer) {
+            buffer.writeInt(id);
+            buffer.writeResourceLocation(dimension);
+            buffer.writeBoolean(outputPos != null);
+            if (outputPos != null) buffer.writeBlockPos(outputPos);
+            buffer.writeBoolean(outputId != null);
+            if (outputId != null) buffer.writeUUID(outputId);
+            int count = Math.min(links.size(), MAX_LINKS);
+            buffer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                buffer.writeBlockPos(links.get(i).output);
+                buffer.writeBlockPos(links.get(i).input);
+            }
+        }
+
+        private static Response decode(FriendlyByteBuf buffer) {
+            int id = buffer.readInt();
+            ResourceLocation dimension = buffer.readResourceLocation();
+            BlockPos outputPos = buffer.readBoolean() ? buffer.readBlockPos() : null;
+            UUID outputId = buffer.readBoolean() ? buffer.readUUID() : null;
+            int count = Math.min(buffer.readVarInt(), MAX_LINKS);
+            List<Link> links = new ArrayList<>(count);
+            for (int i = 0; i < count; i++) links.add(new Link(buffer.readBlockPos(), buffer.readBlockPos()));
+            return new Response(id, dimension, outputId, outputPos, links);
         }
     }
 }

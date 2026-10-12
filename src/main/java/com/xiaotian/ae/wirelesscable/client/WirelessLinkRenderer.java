@@ -1,310 +1,208 @@
 package com.xiaotian.ae.wirelesscable.client;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import com.xiaotian.ae.wirelesscable.network.WirelessLinkNetwork;
-import com.xiaotian.ae.wirelesscable.registry.Items;
-import net.minecraft.block.state.IBlockState;
+import com.xiaotian.ae.wirelesscable.registry.ModContent;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import org.lwjgl.opengl.GL11;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import org.joml.Matrix4f;
 
+import java.util.List;
+
+@Mod.EventBusSubscriber(modid = AEWirelessChannel.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class WirelessLinkRenderer {
+    private static final double BEAM_HALF_WIDTH = 0.065;
+    private static final double BOX_LINE_HALF_WIDTH = 0.018;
+    private static final double ARROW_SPACING = 1.0;
+    private static final double ARROW_SPEED_BLOCKS_PER_SECOND = 1.0;
 
-    private static final double BEAM_RADIUS = 0.11;
-    private static final double CHEVRON_SPACING = 1.0;
-    private static final double CHEVRON_SPEED_BLOCKS_PER_TICK = 1.0 / 20.0;
-    private static final int REFRESH_INTERVAL_TICKS = 10;
-
-    private World renderWorld;
-    private int refreshTicks;
-
-    @SubscribeEvent
-    public void onClientTick(final TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-
-        final Minecraft minecraft = Minecraft.getMinecraft();
-        if (minecraft.world == null || minecraft.player == null) {
-            WirelessLinkNetwork.clearSelection();
-            renderWorld = null;
-            refreshTicks = 0;
-            return;
-        }
-        if (renderWorld != null && renderWorld != minecraft.world) {
-            WirelessLinkNetwork.clearSelection();
-            renderWorld = minecraft.world;
-            refreshTicks = 0;
-        }
-        if (!isConnectionCardHeld(minecraft)) {
-            refreshTicks = 0;
-            return;
-        }
-
-        final WirelessLinkNetwork.Selection selection = WirelessLinkNetwork.getSelection();
-        if (selection == null) return;
-        if (selection.dimension != minecraft.world.provider.getDimension()) {
-            WirelessLinkNetwork.clearSelection();
-            refreshTicks = 0;
-            return;
-        }
-
-        if (++refreshTicks >= REFRESH_INTERVAL_TICKS) {
-            refreshTicks = 0;
-            WirelessLinkNetwork.refreshVisualization();
-        }
+    private WirelessLinkRenderer() {
     }
 
     @SubscribeEvent
-    public void renderLinks(final RenderWorldLastEvent event) {
-        final Minecraft minecraft = Minecraft.getMinecraft();
-        if (minecraft.world == null || minecraft.player == null) {
-            renderWorld = null;
-            return;
-        }
-        if (renderWorld != null && renderWorld != minecraft.world) {
-            WirelessLinkNetwork.clearSelection();
-        }
-        renderWorld = minecraft.world;
+    public static void render(RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null || minecraft.level == null || !isHoldingCard(minecraft)) return;
+        WirelessLinkNetwork.Snapshot snapshot = WirelessLinkNetwork.getSnapshot(minecraft.level.dimension().location());
+        if (snapshot == null) return;
 
-        if (!isConnectionCardHeld(minecraft)) return;
-        final WirelessLinkNetwork.Snapshot snapshot = WirelessLinkNetwork.getSnapshot(
-                minecraft.world.provider.getDimension());
-        if (snapshot == null || snapshot.links.isEmpty()) return;
+        Level level = minecraft.level;
+        Vec3 camera = event.getCamera().getPosition();
+        var poseStack = event.getPoseStack();
+        poseStack.pushPose();
+        poseStack.translate(-camera.x, -camera.y, -camera.z);
+        Matrix4f matrix = poseStack.last().pose();
 
-        final double cameraX = minecraft.getRenderManager().viewerPosX;
-        final double cameraY = minecraft.getRenderManager().viewerPosY;
-        final double cameraZ = minecraft.getRenderManager().viewerPosZ;
-        final double animationTime = minecraft.world.getTotalWorldTime() + event.getPartialTicks();
-        final Tessellator tessellator = Tessellator.getInstance();
-        final BufferBuilder buffer = tessellator.getBuffer();
-
-        GlStateManager.pushMatrix();
-        GlStateManager.disableDepth();
-        GlStateManager.depthMask(false);
-        GlStateManager.disableTexture2D();
-        GlStateManager.disableLighting();
-        GlStateManager.enableBlend();
-        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GlStateManager.disableCull();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableCull();
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
         try {
-            renderCollisionBoxes(minecraft.world, snapshot, buffer, tessellator,
-                    cameraX, cameraY, cameraZ);
-            renderStripedBeams(minecraft.world, snapshot, buffer, tessellator,
-                    cameraX, cameraY, cameraZ, animationTime);
+            drawCollisionBoxes(level, snapshot, matrix, camera);
+            drawBeams(snapshot.links, level, camera, matrix, event.getRenderTick() + event.getPartialTick());
         } finally {
-            GL11.glLineWidth(1.0F);
-            GlStateManager.enableCull();
-            GlStateManager.disableBlend();
-            GlStateManager.enableLighting();
-            GlStateManager.enableTexture2D();
-            GlStateManager.enableDepth();
-            GlStateManager.depthMask(true);
-            GlStateManager.popMatrix();
+            RenderSystem.depthMask(true);
+            RenderSystem.enableDepthTest();
+            RenderSystem.enableCull();
+            RenderSystem.disableBlend();
+            poseStack.popPose();
         }
     }
 
-    private static boolean isConnectionCardHeld(final Minecraft minecraft) {
-        return minecraft.player.getHeldItemMainhand().getItem() == Items.ITEM_WIRELESS_KEY_CARD
-                || minecraft.player.getHeldItemOffhand().getItem() == Items.ITEM_WIRELESS_KEY_CARD;
+    private static boolean isHoldingCard(Minecraft minecraft) {
+        return minecraft.player.getMainHandItem().is(ModContent.WIRELESS_KEY_CARD.get())
+                || minecraft.player.getOffhandItem().is(ModContent.WIRELESS_KEY_CARD.get());
     }
 
-    private static void renderCollisionBoxes(final World world, final WirelessLinkNetwork.Snapshot snapshot,
-                                             final BufferBuilder buffer, final Tessellator tessellator,
-                                             final double cameraX, final double cameraY, final double cameraZ) {
-        GL11.glLineWidth(2.0F);
-        buffer.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
+    private static void drawCollisionBoxes(Level level, WirelessLinkNetwork.Snapshot snapshot,
+                                           Matrix4f matrix, Vec3 camera) {
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        drawCollisionBox(level, snapshot.output, buffer, matrix, camera, 0.40F, 0.82F, 1.0F);
         for (WirelessLinkNetwork.Link link : snapshot.links) {
-            drawCollisionBox(buffer, getCollisionBox(world, link.outputBus),
-                    cameraX, cameraY, cameraZ, 1.0F, 0.68F, 0.12F);
-            drawCollisionBox(buffer, getCollisionBox(world, link.inputBus),
-                    cameraX, cameraY, cameraZ, 0.18F, 0.92F, 0.67F);
+            drawCollisionBox(level, link.input, buffer, matrix, camera, 1.0F, 0.76F, 0.24F);
         }
-        tessellator.draw();
+        BufferUploader.drawWithShader(buffer.end());
     }
 
-    private static AxisAlignedBB getCollisionBox(final World world, final BlockPos pos) {
-        if (!world.isBlockLoaded(pos)) return null;
-        final IBlockState state = world.getBlockState(pos);
-        final AxisAlignedBB box = state.getCollisionBoundingBox(world, pos);
-        if (box == null || Math.abs(box.maxX - box.minX) < 1.0E-6
-                || Math.abs(box.maxY - box.minY) < 1.0E-6
-                || Math.abs(box.maxZ - box.minZ) < 1.0E-6) return null;
-
-        return new AxisAlignedBB(
-                Math.min(box.minX, box.maxX), Math.min(box.minY, box.maxY), Math.min(box.minZ, box.maxZ),
-                Math.max(box.minX, box.maxX), Math.max(box.minY, box.maxY), Math.max(box.minZ, box.maxZ))
-                .offset(pos);
+    private static void drawCollisionBox(Level level, BlockPos pos, BufferBuilder buffer, Matrix4f matrix,
+                                         Vec3 camera, float red, float green, float blue) {
+        if (!level.hasChunkAt(pos)) return;
+        BlockState state = level.getBlockState(pos);
+        VoxelShape shape = state.getCollisionShape(level, pos, CollisionContext.empty());
+        if (shape.isEmpty()) return;
+        AABB box = shape.bounds().move(pos);
+        double x0 = box.minX, y0 = box.minY, z0 = box.minZ;
+        double x1 = box.maxX, y1 = box.maxY, z1 = box.maxZ;
+        drawBoxEdge(buffer, matrix, camera, new Vec3(x0, y0, z0), new Vec3(x1, y0, z0), red, green, blue);
+        drawBoxEdge(buffer, matrix, camera, new Vec3(x1, y0, z0), new Vec3(x1, y0, z1), red, green, blue);
+        drawBoxEdge(buffer, matrix, camera, new Vec3(x1, y0, z1), new Vec3(x0, y0, z1), red, green, blue);
+        drawBoxEdge(buffer, matrix, camera, new Vec3(x0, y0, z1), new Vec3(x0, y0, z0), red, green, blue);
+        drawBoxEdge(buffer, matrix, camera, new Vec3(x0, y1, z0), new Vec3(x1, y1, z0), red, green, blue);
+        drawBoxEdge(buffer, matrix, camera, new Vec3(x1, y1, z0), new Vec3(x1, y1, z1), red, green, blue);
+        drawBoxEdge(buffer, matrix, camera, new Vec3(x1, y1, z1), new Vec3(x0, y1, z1), red, green, blue);
+        drawBoxEdge(buffer, matrix, camera, new Vec3(x0, y1, z1), new Vec3(x0, y1, z0), red, green, blue);
+        drawBoxEdge(buffer, matrix, camera, new Vec3(x0, y0, z0), new Vec3(x0, y1, z0), red, green, blue);
+        drawBoxEdge(buffer, matrix, camera, new Vec3(x1, y0, z0), new Vec3(x1, y1, z0), red, green, blue);
+        drawBoxEdge(buffer, matrix, camera, new Vec3(x1, y0, z1), new Vec3(x1, y1, z1), red, green, blue);
+        drawBoxEdge(buffer, matrix, camera, new Vec3(x0, y0, z1), new Vec3(x0, y1, z1), red, green, blue);
     }
 
-    private static void drawCollisionBox(final BufferBuilder buffer, final AxisAlignedBB box,
-                                         final double cameraX, final double cameraY, final double cameraZ,
-                                         final float red, final float green, final float blue) {
-        if (box == null) return;
-        final double minX = box.minX - cameraX;
-        final double minY = box.minY - cameraY;
-        final double minZ = box.minZ - cameraZ;
-        final double maxX = box.maxX - cameraX;
-        final double maxY = box.maxY - cameraY;
-        final double maxZ = box.maxZ - cameraZ;
-
-        addLine(buffer, minX, minY, minZ, maxX, minY, minZ, red, green, blue, 1.0F);
-        addLine(buffer, maxX, minY, minZ, maxX, minY, maxZ, red, green, blue, 1.0F);
-        addLine(buffer, maxX, minY, maxZ, minX, minY, maxZ, red, green, blue, 1.0F);
-        addLine(buffer, minX, minY, maxZ, minX, minY, minZ, red, green, blue, 1.0F);
-        addLine(buffer, minX, maxY, minZ, maxX, maxY, minZ, red, green, blue, 1.0F);
-        addLine(buffer, maxX, maxY, minZ, maxX, maxY, maxZ, red, green, blue, 1.0F);
-        addLine(buffer, maxX, maxY, maxZ, minX, maxY, maxZ, red, green, blue, 1.0F);
-        addLine(buffer, minX, maxY, maxZ, minX, maxY, minZ, red, green, blue, 1.0F);
-        addLine(buffer, minX, minY, minZ, minX, maxY, minZ, red, green, blue, 1.0F);
-        addLine(buffer, maxX, minY, minZ, maxX, maxY, minZ, red, green, blue, 1.0F);
-        addLine(buffer, maxX, minY, maxZ, maxX, maxY, maxZ, red, green, blue, 1.0F);
-        addLine(buffer, minX, minY, maxZ, minX, maxY, maxZ, red, green, blue, 1.0F);
+    private static void drawBoxEdge(BufferBuilder buffer, Matrix4f matrix, Vec3 camera,
+                                    Vec3 start, Vec3 end, float red, float green, float blue) {
+        Vec3 direction = end.subtract(start).normalize();
+        Vec3 towardCamera = camera.subtract(start.add(end).scale(0.5)).normalize();
+        Vec3 side = direction.cross(towardCamera).normalize();
+        if (side.lengthSqr() < 1.0e-5) side = direction.cross(new Vec3(0, 1, 0)).normalize();
+        if (side.lengthSqr() < 1.0e-5) side = direction.cross(new Vec3(1, 0, 0)).normalize();
+        if (side.lengthSqr() < 1.0e-5) return;
+        side = side.scale(BOX_LINE_HALF_WIDTH);
+        addQuad(buffer, matrix, start.add(side), end.add(side), end.subtract(side), start.subtract(side),
+                red, green, blue, 0.98F);
     }
 
-    private static void renderStripedBeams(final World world, final WirelessLinkNetwork.Snapshot snapshot,
-                                          final BufferBuilder buffer, final Tessellator tessellator,
-                                          final double cameraX, final double cameraY, final double cameraZ,
-                                          final double animationTime) {
-        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
-        for (WirelessLinkNetwork.Link link : snapshot.links) {
-            final double[] start = getEndpointCenter(world, link.outputBus, cameraX, cameraY, cameraZ);
-            final double[] end = getEndpointCenter(world, link.inputBus, cameraX, cameraY, cameraZ);
-            drawStripedBeam(buffer, start, end, animationTime);
+    private static void drawBeams(List<WirelessLinkNetwork.Link> links, Level level, Vec3 camera,
+                                  Matrix4f matrix, float renderTick) {
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        double seconds = (level.getGameTime() + renderTick) / 20.0;
+        for (WirelessLinkNetwork.Link link : links) {
+            Vec3 start = getCollisionBoxCenter(level, link.output);
+            Vec3 end = getCollisionBoxCenter(level, link.input);
+            drawBeam(buffer, matrix, start, end, camera, seconds);
         }
-        tessellator.draw();
+        BufferUploader.drawWithShader(buffer.end());
     }
 
-    private static double[] getEndpointCenter(final World world, final BlockPos pos,
-                                              final double cameraX, final double cameraY, final double cameraZ) {
-        final AxisAlignedBB box = getCollisionBox(world, pos);
-        if (box == null) {
-            return new double[]{pos.getX() + 0.5 - cameraX,
-                    pos.getY() + 0.5 - cameraY, pos.getZ() + 0.5 - cameraZ};
-        }
-        return new double[]{(box.minX + box.maxX) * 0.5 - cameraX,
-                (box.minY + box.maxY) * 0.5 - cameraY,
-                (box.minZ + box.maxZ) * 0.5 - cameraZ};
+    private static Vec3 getCollisionBoxCenter(Level level, BlockPos pos) {
+        if (!level.hasChunkAt(pos)) return Vec3.atCenterOf(pos).add(0, -0.0625, 0);
+        VoxelShape shape = level.getBlockState(pos).getShape(level, pos);
+        if (shape.isEmpty()) return Vec3.atCenterOf(pos);
+        AABB box = shape.bounds().move(pos);
+        return box.getCenter();
     }
 
-    private static void drawStripedBeam(final BufferBuilder buffer, final double[] start,
-                                        final double[] end, final double animationTime) {
-        final double dx = end[0] - start[0];
-        final double dy = end[1] - start[1];
-        final double dz = end[2] - start[2];
-        final double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    private static void drawBeam(BufferBuilder buffer, Matrix4f matrix, Vec3 start, Vec3 end,
+                                 Vec3 camera, double seconds) {
+        Vec3 delta = end.subtract(start);
+        double length = delta.length();
         if (length < 0.01) return;
+        Vec3 direction = delta.scale(1.0 / length);
+        Vec3 midpoint = start.add(end).scale(0.5);
+        Vec3 towardCamera = camera.subtract(midpoint).normalize();
+        Vec3 side = direction.cross(towardCamera).normalize();
+        if (side.lengthSqr() < 1.0e-5) side = direction.cross(new Vec3(0, 1, 0)).normalize();
+        if (side.lengthSqr() < 1.0e-5) side = direction.cross(new Vec3(1, 0, 0)).normalize();
+        if (side.lengthSqr() < 1.0e-5) return;
 
-        final double dirX = dx / length;
-        final double dirY = dy / length;
-        final double dirZ = dz / length;
-        final double midX = (start[0] + end[0]) * 0.5;
-        final double midY = (start[1] + end[1]) * 0.5;
-        final double midZ = (start[2] + end[2]) * 0.5;
-        final double[] sideA = normalize(cross(dirX, dirY, dirZ, -midX, -midY, -midZ));
-        if (sideA == null) {
-            final double[] fallback = normalize(cross(dirX, dirY, dirZ, 0.0, 1.0, 0.0));
-            if (fallback != null) {
-                drawRibbonPlane(buffer, start, dirX, dirY, dirZ, length, fallback, animationTime);
-                return;
-            }
-            final double[] horizontalFallback = normalize(cross(dirX, dirY, dirZ, 1.0, 0.0, 0.0));
-            if (horizontalFallback == null) return;
-            drawRibbonPlane(buffer, start, dirX, dirY, dirZ, length, horizontalFallback, animationTime);
-            return;
-        }
+        addQuad(buffer, matrix,
+                point(start, direction, side, 0, -BEAM_HALF_WIDTH),
+                point(start, direction, side, length, -BEAM_HALF_WIDTH),
+                point(start, direction, side, length, BEAM_HALF_WIDTH),
+                point(start, direction, side, 0, BEAM_HALF_WIDTH),
+                0.30F, 0.69F, 0.98F, 0.90F);
 
-        drawRibbonPlane(buffer, start, dirX, dirY, dirZ, length, sideA, animationTime);
-    }
-
-    private static void drawRibbonPlane(final BufferBuilder buffer, final double[] start,
-                                        final double dirX, final double dirY, final double dirZ,
-                                        final double length, final double[] side, final double animationTime) {
-        addQuad(buffer,
-                point(start, dirX, dirY, dirZ, side, 0.0, -BEAM_RADIUS),
-                point(start, dirX, dirY, dirZ, side, length, -BEAM_RADIUS),
-                point(start, dirX, dirY, dirZ, side, length, BEAM_RADIUS),
-                point(start, dirX, dirY, dirZ, side, 0.0, BEAM_RADIUS),
-                0.16F, 0.38F, 0.72F, 0.96F);
-
-        double phase = animationTime * CHEVRON_SPEED_BLOCKS_PER_TICK % CHEVRON_SPACING;
-        if (phase < 0.0) phase += CHEVRON_SPACING;
-        for (double distance = 0.28 + phase; distance < length; distance += CHEVRON_SPACING) {
-            if (distance < 0.20 || distance + 0.20 > length) continue;
-            final double[] center = point(start, dirX, dirY, dirZ, side, distance, 0.0);
-            drawChevron(buffer, center, dirX, dirY, dirZ, side);
+        double phase = seconds * ARROW_SPEED_BLOCKS_PER_SECOND % ARROW_SPACING;
+        for (double distance = 0.42 + phase; distance < length - 0.2; distance += ARROW_SPACING) {
+            double fadePhase = (seconds * 0.75 + distance * 0.31) % 1.0;
+            float alpha = (float) (0.25 + 0.75 * Math.sin(Math.PI * fadePhase));
+            Vec3 center = point(start, direction, side, distance, 0);
+            drawArrow(buffer, matrix, center, direction, side, 0.18, BEAM_HALF_WIDTH * 0.78, alpha);
         }
     }
 
-    private static void drawChevron(final BufferBuilder buffer, final double[] center,
-                                    final double dirX, final double dirY, final double dirZ,
-                                    final double[] side) {
-        drawArrowGlyph(buffer, center, dirX, dirY, dirZ, side,
-                0.19, BEAM_RADIUS * 0.84, 0.045, 1.0F);
+    private static Vec3 point(Vec3 origin, Vec3 direction, Vec3 side, double along, double across) {
+        return origin.add(direction.scale(along)).add(side.scale(across));
     }
 
-    private static void drawArrowGlyph(final BufferBuilder buffer, final double[] center,
-                                       final double dirX, final double dirY, final double dirZ,
-                                       final double[] side, final double halfLength,
-                                       final double halfWidth, final double thickness, final float alpha) {
-        final double[] tip = point(center, dirX, dirY, dirZ, side, halfLength, 0.0);
-        final double[] innerTip = point(center, dirX, dirY, dirZ, side,
-                halfLength - thickness * 1.5, 0.0);
-
-        addQuad(buffer,
-                point(center, dirX, dirY, dirZ, side, -halfLength, halfWidth), tip, innerTip,
-                point(center, dirX, dirY, dirZ, side, -halfLength, halfWidth - thickness),
-                1.0F, 0.88F, 0.08F, alpha);
-        addQuad(buffer,
-                point(center, dirX, dirY, dirZ, side, -halfLength, -halfWidth),
-                point(center, dirX, dirY, dirZ, side, -halfLength, -halfWidth + thickness),
-                innerTip, tip, 1.0F, 0.88F, 0.08F, alpha);
+    private static void drawArrow(BufferBuilder buffer, Matrix4f matrix, Vec3 center,
+                                  Vec3 direction, Vec3 side, double halfLength, double halfWidth, float alpha) {
+        Vec3 tip = point(center, direction, side, halfLength, 0);
+        Vec3 innerTip = point(center, direction, side, halfLength - 0.06, 0);
+        double thick = 0.035;
+        addQuad(buffer, matrix,
+                point(center, direction, side, -halfLength, halfWidth), tip, innerTip,
+                point(center, direction, side, -halfLength, halfWidth - thick),
+                1.0F, 0.83F, 0.16F, alpha);
+        addQuad(buffer, matrix,
+                point(center, direction, side, -halfLength, -halfWidth),
+                point(center, direction, side, -halfLength, -halfWidth + thick), innerTip, tip,
+                1.0F, 0.83F, 0.16F, alpha);
     }
 
-    private static double[] point(final double[] origin,
-                                  final double dirX, final double dirY, final double dirZ,
-                                  final double[] side, final double along, final double across) {
-        return new double[]{origin[0] + dirX * along + side[0] * across,
-                origin[1] + dirY * along + side[1] * across,
-                origin[2] + dirZ * along + side[2] * across};
+    private static void addQuad(BufferBuilder buffer, Matrix4f matrix, Vec3 a, Vec3 b, Vec3 c, Vec3 d,
+                                float red, float green, float blue, float alpha) {
+        addVertex(buffer, matrix, a, red, green, blue, alpha);
+        addVertex(buffer, matrix, b, red, green, blue, alpha);
+        addVertex(buffer, matrix, c, red, green, blue, alpha);
+        addVertex(buffer, matrix, d, red, green, blue, alpha);
     }
 
-    private static double[] cross(final double ax, final double ay, final double az,
-                                  final double bx, final double by, final double bz) {
-        return new double[]{ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx};
+    private static void addVertex(BufferBuilder buffer, Matrix4f matrix, Vec3 point,
+                                  float red, float green, float blue, float alpha) {
+        buffer.vertex(matrix, (float) point.x, (float) point.y, (float) point.z)
+                .color(red, green, blue, alpha).endVertex();
     }
 
-    private static double[] normalize(final double[] vector) {
-        final double length = Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1] + vector[2] * vector[2]);
-        if (length < 1.0E-6) return null;
-        return new double[]{vector[0] / length, vector[1] / length, vector[2] / length};
-    }
-
-    private static void addQuad(final BufferBuilder buffer,
-                                final double[] a, final double[] b, final double[] c, final double[] d,
-                                final float red, final float green, final float blue, final float alpha) {
-        addVertex(buffer, a, red, green, blue, alpha);
-        addVertex(buffer, b, red, green, blue, alpha);
-        addVertex(buffer, c, red, green, blue, alpha);
-        addVertex(buffer, d, red, green, blue, alpha);
-    }
-
-    private static void addVertex(final BufferBuilder buffer, final double[] point,
-                                  final float red, final float green, final float blue, final float alpha) {
-        buffer.pos(point[0], point[1], point[2]).color(red, green, blue, alpha).endVertex();
-    }
-
-    private static void addLine(final BufferBuilder buffer,
-                                final double startX, final double startY, final double startZ,
-                                final double endX, final double endY, final double endZ,
-                                final float red, final float green, final float blue, final float alpha) {
-        buffer.pos(startX, startY, startZ).color(red, green, blue, alpha).endVertex();
-        buffer.pos(endX, endY, endZ).color(red, green, blue, alpha).endVertex();
-    }
 }

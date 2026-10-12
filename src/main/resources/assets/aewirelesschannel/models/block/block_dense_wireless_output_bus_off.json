@@ -1,8 +1,8 @@
 {
 	"texture_size": [64, 64],
 	"textures": {
-		"0": "aewirelesschannel:blocks/block_dense_wireless_output_bus_off",
-		"particle": "aewirelesschannel:blocks/particle_wireless_output"
+		"0": "aewirelesschannel:block/block_dense_wireless_output_bus_off",
+		"particle": "aewirelesschannel:block/particle_wireless_output"
 	},
 	"elements": [
 		{
