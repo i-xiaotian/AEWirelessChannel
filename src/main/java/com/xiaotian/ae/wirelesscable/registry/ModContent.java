@@ -1,5 +1,6 @@
 package com.xiaotian.ae.wirelesscable.registry;
 
+import appeng.api.AECapabilities;
 import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import com.xiaotian.ae.wirelesscable.block.WirelessBusBlock;
 import com.xiaotian.ae.wirelesscable.item.ItemWirelessKeyCard;
@@ -14,6 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -80,5 +82,18 @@ public final class ModContent {
         ITEMS.register(modBus);
         BLOCK_ENTITIES.register(modBus);
         TABS.register(modBus);
+    }
+
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        registerGridNodeHost(event, WIRELESS_OUTPUT_BUS_ENTITY.get());
+        registerGridNodeHost(event, WIRELESS_INPUT_BUS_ENTITY.get());
+        registerGridNodeHost(event, DENSE_WIRELESS_OUTPUT_BUS_ENTITY.get());
+        registerGridNodeHost(event, DENSE_WIRELESS_INPUT_BUS_ENTITY.get());
+    }
+
+    private static void registerGridNodeHost(RegisterCapabilitiesEvent event,
+                                             BlockEntityType<WirelessBusBlockEntity> blockEntityType) {
+        event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, blockEntityType,
+                (blockEntity, context) -> blockEntity);
     }
 }

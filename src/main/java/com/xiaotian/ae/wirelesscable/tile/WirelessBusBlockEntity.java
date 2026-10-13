@@ -110,7 +110,10 @@ public class WirelessBusBlockEntity extends AENetworkedBlockEntity implements IA
     public void onReady() {
         super.onReady();
         updateExposedSide();
-        if (level instanceof ServerLevel serverLevel) registerLoaded(serverLevel);
+        if (level instanceof ServerLevel serverLevel) {
+            registerLoaded(serverLevel);
+            level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
+        }
     }
 
     @Override
@@ -242,7 +245,7 @@ public class WirelessBusBlockEntity extends AENetworkedBlockEntity implements IA
     private void updateExposedSide() {
         if (level == null || !level.isClientSide && !getMainNode().isReady()) return;
         Direction facing = getBlockState().getValue(BlockStateProperties.FACING);
-        getMainNode().setExposedOnSides(Set.of(facing.getOpposite()));
+        getMainNode().setExposedOnSides(Set.of(facing, facing.getOpposite()));
     }
 
     private void reconcileConnections() {

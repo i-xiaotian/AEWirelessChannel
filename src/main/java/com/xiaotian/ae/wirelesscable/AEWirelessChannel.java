@@ -23,6 +23,7 @@ public final class AEWirelessChannel {
 
     public AEWirelessChannel(IEventBus modBus, ModContainer container) {
         ModContent.register(modBus);
+        modBus.addListener(ModContent::registerCapabilities);
         container.registerConfig(Type.COMMON, ModConfig.SPEC);
         modBus.addListener(WirelessLinkNetwork::register);
         modBus.addListener(NetworkChunkLoading::registerTicketController);
