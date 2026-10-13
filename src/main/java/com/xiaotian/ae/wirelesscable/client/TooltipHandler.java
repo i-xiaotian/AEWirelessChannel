@@ -6,19 +6,19 @@ import com.xiaotian.ae.wirelesscable.config.ModConfig;
 import com.xiaotian.ae.wirelesscable.item.ItemWirelessKeyCard;
 import com.xiaotian.ae.wirelesscable.registry.ModContent;
 import com.xiaotian.ae.wirelesscable.util.ChannelLimitUtils;
-import net.minecraft.nbt.CompoundTag;
+import com.xiaotian.ae.wirelesscable.util.ItemConnectionData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mod.EventBusSubscriber(modid = AEWirelessChannel.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = AEWirelessChannel.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
 public final class TooltipHandler {
     private TooltipHandler() {
     }
@@ -31,7 +31,7 @@ public final class TooltipHandler {
             tooltip.add(Component.translatable("tooltip.aewirelesschannel.item_wireless_key_card.output"));
             tooltip.add(Component.translatable("tooltip.aewirelesschannel.item_wireless_key_card.input"));
             tooltip.add(Component.translatable("tooltip.aewirelesschannel.item_wireless_key_card.clear"));
-            CompoundTag bound = stack.getTagElement(WirelessBusBlock.OUTPUT_BOUND_TAG);
+            var bound = ItemConnectionData.get(stack, WirelessBusBlock.OUTPUT_BOUND_TAG);
             if (bound == null || !bound.hasUUID(WirelessBusBlock.OUTPUT_ID_TAG)) {
                 tooltip.add(Component.translatable("tooltip.aewirelesschannel.item_wireless_key_card.not_bound"));
             } else {

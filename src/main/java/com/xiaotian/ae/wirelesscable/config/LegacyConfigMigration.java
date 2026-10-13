@@ -40,7 +40,7 @@ public final class LegacyConfigMigration {
                 }
                 ModConfig.DISMANTLING_TOOLS.set(tools);
             }
-            event.getConfig().save();
+            ModConfig.SPEC.save();
             archiveOldFile(oldFile);
             AEWirelessChannel.LOGGER.info("Migrated settings from {} to the NeoForge config", oldFile.getFileName());
         } catch (IOException exception) {

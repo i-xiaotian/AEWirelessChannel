@@ -7,14 +7,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
 import net.neoforged.neoforge.common.world.chunk.TicketController;
 import net.neoforged.neoforge.common.world.chunk.TicketHelper;
 import net.neoforged.neoforge.common.world.chunk.TicketSet;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
-import net.neoforged.neoforge.event.TickEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 
 import java.util.ArrayList;
@@ -27,7 +26,7 @@ import java.util.WeakHashMap;
 
 public final class NetworkChunkLoading {
     private static final TicketController TICKET_CONTROLLER = new TicketController(
-            new ResourceLocation(AEWirelessChannel.MOD_ID, "wireless_bus"), NetworkChunkLoading::restoreTickets);
+            ResourceLocation.fromNamespaceAndPath(AEWirelessChannel.MOD_ID, "wireless_bus"), NetworkChunkLoading::restoreTickets);
     private static final Map<ServerLevel, Map<BlockPos, TicketState>> TICKETS = new WeakHashMap<>();
     private static final Map<ServerLevel, Integer> SHARED_CHUNK_COUNTS = new WeakHashMap<>();
     private static final Map<ServerLevel, Set<BlockPos>> PENDING_OWNER_CHECKS = new WeakHashMap<>();
@@ -144,8 +143,8 @@ public final class NetworkChunkLoading {
     }
 
     @SubscribeEvent
-    public static void onLevelTick(TickEvent.LevelTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || !(event.level instanceof ServerLevel level)) return;
+    public static void onLevelTick(LevelTickEvent.Post event) {
+        if (!(event.getLevel() instanceof ServerLevel level)) return;
         Set<BlockPos> pending = PENDING_OWNER_CHECKS.remove(level);
         if (pending == null) return;
         for (BlockPos owner : pending) {

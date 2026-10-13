@@ -6,15 +6,20 @@ import com.xiaotian.ae.wirelesscable.item.ItemWirelessKeyCard;
 import com.xiaotian.ae.wirelesscable.network.WirelessLinkNetwork;
 import com.xiaotian.ae.wirelesscable.registry.ModContent;
 import com.xiaotian.ae.wirelesscable.tile.WirelessBusBlockEntity;
+import com.xiaotian.ae.wirelesscable.util.ItemConnectionData;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -63,6 +68,11 @@ public class WirelessBusBlock extends BaseEntityBlock {
         registerDefaultState(defaultBlockState()
                 .setValue(BlockStateProperties.FACING, Direction.NORTH)
                 .setValue(BlockStateProperties.POWERED, false));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return MapCodec.unit(this);
     }
 
     public boolean isOutput() {
@@ -137,15 +147,33 @@ public class WirelessBusBlock extends BaseEntityBlock {
         if (level.getBlockEntity(pos) instanceof WirelessBusBlockEntity bus) {
             if (placer instanceof Player player) bus.setOwner(player);
             if (!level.isClientSide) {
-                CompoundTag portableData = stack.getTagElement(PORTABLE_CONNECTION_TAG);
+                CompoundTag portableData = ItemConnectionData.get(stack, PORTABLE_CONNECTION_TAG);
                 if (portableData != null) bus.loadPortableConnectionData(portableData);
             }
         }
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
-                                 InteractionHand hand, BlockHitResult hit) {
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                              Player player, InteractionHand hand, BlockHitResult hit) {
+        InteractionResult result = useBlock(state, level, pos, player, hand, hit);
+        return switch (result) {
+            case SUCCESS -> ItemInteractionResult.SUCCESS;
+            case CONSUME -> ItemInteractionResult.CONSUME;
+            case FAIL -> ItemInteractionResult.FAIL;
+            case PASS -> ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            default -> ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        };
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                               BlockHitResult hit) {
+        return useBlock(state, level, pos, player, InteractionHand.MAIN_HAND, hit);
+    }
+
+    private InteractionResult useBlock(BlockState state, Level level, BlockPos pos, Player player,
+                                       InteractionHand hand, BlockHitResult hit) {
         if (player.getItemInHand(hand).getItem() instanceof ItemWirelessKeyCard) {
             return useConnectionCard(level, pos, player, hand);
         }
@@ -190,12 +218,11 @@ public class WirelessBusBlock extends BaseEntityBlock {
             if (level.isClientSide) {
                 WirelessLinkNetwork.select(pos, hand, null);
             } else {
-                CompoundTag root = card.getOrCreateTag();
                 CompoundTag bound = new CompoundTag();
                 bound.putUUID(OUTPUT_ID_TAG, bus.getOutputBusId());
                 bound.putLong(OUTPUT_POS_TAG, pos.asLong());
                 bound.putString(DIMENSION_TAG, level.dimension().location().toString());
-                root.put(OUTPUT_BOUND_TAG, bound);
+                ItemConnectionData.put(card, OUTPUT_BOUND_TAG, bound);
                 player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
                         "message.aewirelesschannel.bound_out_put_bus"), true);
             }
@@ -203,7 +230,7 @@ public class WirelessBusBlock extends BaseEntityBlock {
         }
 
         if (level.isClientSide) {
-            CompoundTag bound = card.getTagElement(OUTPUT_BOUND_TAG);
+            CompoundTag bound = ItemConnectionData.get(card, OUTPUT_BOUND_TAG);
             if (bound != null && bound.hasUUID(OUTPUT_ID_TAG)) {
                 WirelessLinkNetwork.select(BlockPos.of(bound.getLong(OUTPUT_POS_TAG)), hand,
                         bound.getUUID(OUTPUT_ID_TAG));
@@ -211,7 +238,7 @@ public class WirelessBusBlock extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
 
-        CompoundTag bound = card.getTagElement(OUTPUT_BOUND_TAG);
+        CompoundTag bound = ItemConnectionData.get(card, OUTPUT_BOUND_TAG);
         if (bound == null || !bound.hasUUID(OUTPUT_ID_TAG)) {
             player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
                     "message.aewirelesschannel.not_bound"), true);
@@ -250,7 +277,7 @@ public class WirelessBusBlock extends BaseEntityBlock {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         ItemStack drop = new ItemStack(this);
         if (blockEntity instanceof WirelessBusBlockEntity bus) {
-            blockEntity.saveToItem(drop);
+            blockEntity.saveToItem(drop, level.registryAccess());
             writePortableData(drop, bus.savePortableConnectionData());
         }
 
@@ -289,7 +316,7 @@ public class WirelessBusBlock extends BaseEntityBlock {
         }
 
         ItemStack drop = new ItemStack(this);
-        if (blockEntity instanceof WirelessBusBlockEntity) blockEntity.saveToItem(drop);
+        if (blockEntity instanceof WirelessBusBlockEntity) blockEntity.saveToItem(drop, level.registryAccess());
         writePortableData(drop, pending.connectionData());
         ItemEntity itemEntity = new ItemEntity(level, pos.getX() + 0.5, pos.getY() + 0.5,
                 pos.getZ() + 0.5, drop);
@@ -299,8 +326,8 @@ public class WirelessBusBlock extends BaseEntityBlock {
     }
 
     private static void writePortableData(ItemStack drop, CompoundTag portableData) {
-        drop.getOrCreateTagElement(BLOCK_ENTITY_TAG).merge(portableData.copy());
-        drop.getOrCreateTag().put(PORTABLE_CONNECTION_TAG, portableData.copy());
+        CustomData.update(DataComponents.BLOCK_ENTITY_DATA, drop, data -> data.merge(portableData.copy()));
+        ItemConnectionData.put(drop, PORTABLE_CONNECTION_TAG, portableData);
     }
 
     @Nullable

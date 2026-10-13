@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentMap;
 
 public final class BloomLightModel extends BakedModelWrapper<BakedModel> {
     private static final String BLOOM_TEXTURE_PATH = "block/bloom/";
-    private static final int BLOCK_VERTEX_SIZE = DefaultVertexFormat.BLOCK.getIntegerSize();
+    private static final int BLOCK_VERTEX_SIZE = DefaultVertexFormat.BLOCK.getVertexSize() / Integer.BYTES;
     private static final int LIGHTMAP_OFFSET = findLightmapOffset();
 
     private final ConcurrentMap<BakedQuad, BakedQuad> fullBrightQuads = new ConcurrentHashMap<>();
@@ -71,7 +71,7 @@ public final class BloomLightModel extends BakedModelWrapper<BakedModel> {
     }
 
     private static int findLightmapOffset() {
-        int elementIndex = DefaultVertexFormat.BLOCK.getElements().indexOf(DefaultVertexFormat.ELEMENT_UV2);
-        return elementIndex < 0 ? -1 : DefaultVertexFormat.BLOCK.getOffset(elementIndex) / Integer.BYTES;
+        return DefaultVertexFormat.BLOCK.getOffset(com.mojang.blaze3d.vertex.VertexFormatElement.UV2)
+                / Integer.BYTES;
     }
 }

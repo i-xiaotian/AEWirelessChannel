@@ -26,7 +26,7 @@ import java.util.List;
 
 public final class JadeInfoProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
     public static final JadeInfoProvider INSTANCE = new JadeInfoProvider();
-    private static final ResourceLocation ID = new ResourceLocation(AEWirelessChannel.MOD_ID, "jade_info_provider");
+    private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(AEWirelessChannel.MOD_ID, "jade_info_provider");
 
     private JadeInfoProvider() {
     }

@@ -6,5 +6,5 @@
     { "item": "aewirelesschannel:block_wireless_output_bus" },
     { "item": "aewirelesschannel:block_wireless_output_bus" }
   ],
-  "result": { "item": "aewirelesschannel:block_dense_wireless_output_bus" }
+  "result": { "id": "aewirelesschannel:block_dense_wireless_output_bus" }
 }

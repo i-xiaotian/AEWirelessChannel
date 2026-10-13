@@ -9,5 +9,5 @@
     "P": { "item": "ae2:export_bus" },
     "E": { "item": "ae2:quartz_fiber" }
   },
-  "result": { "item": "aewirelesschannel:block_wireless_output_bus" }
+  "result": { "id": "aewirelesschannel:block_wireless_output_bus" }
 }

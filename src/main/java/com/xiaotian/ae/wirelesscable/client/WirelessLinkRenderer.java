@@ -21,12 +21,12 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.joml.Matrix4f;
 
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = AEWirelessChannel.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = AEWirelessChannel.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
 public final class WirelessLinkRenderer {
     private static final double BEAM_HALF_WIDTH = 0.065;
     private static final double BOX_LINE_HALF_WIDTH = 0.018;
@@ -58,7 +58,8 @@ public final class WirelessLinkRenderer {
         RenderSystem.depthMask(false);
         try {
             drawCollisionBoxes(level, snapshot, matrix, camera);
-            drawBeams(snapshot.links, level, camera, matrix, event.getRenderTick() + event.getPartialTick());
+            float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(false);
+            drawBeams(snapshot.links, level, camera, matrix, event.getRenderTick() + partialTick);
         } finally {
             RenderSystem.depthMask(true);
             RenderSystem.enableDepthTest();
@@ -76,13 +77,12 @@ public final class WirelessLinkRenderer {
     private static void drawCollisionBoxes(Level level, WirelessLinkNetwork.Snapshot snapshot,
                                            Matrix4f matrix, Vec3 camera) {
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         drawCollisionBox(level, snapshot.output, buffer, matrix, camera, 0.40F, 0.82F, 1.0F);
         for (WirelessLinkNetwork.Link link : snapshot.links) {
             drawCollisionBox(level, link.input, buffer, matrix, camera, 1.0F, 0.76F, 0.24F);
         }
-        BufferUploader.drawWithShader(buffer.end());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     private static void drawCollisionBox(Level level, BlockPos pos, BufferBuilder buffer, Matrix4f matrix,
@@ -123,16 +123,16 @@ public final class WirelessLinkRenderer {
 
     private static void drawBeams(List<WirelessLinkNetwork.Link> links, Level level, Vec3 camera,
                                   Matrix4f matrix, float renderTick) {
+        if (links.isEmpty()) return;
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         double seconds = (level.getGameTime() + renderTick) / 20.0;
         for (WirelessLinkNetwork.Link link : links) {
             Vec3 start = getCollisionBoxCenter(level, link.output);
             Vec3 end = getCollisionBoxCenter(level, link.input);
             drawBeam(buffer, matrix, start, end, camera, seconds);
         }
-        BufferUploader.drawWithShader(buffer.end());
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     private static Vec3 getCollisionBoxCenter(Level level, BlockPos pos) {
@@ -201,8 +201,8 @@ public final class WirelessLinkRenderer {
 
     private static void addVertex(BufferBuilder buffer, Matrix4f matrix, Vec3 point,
                                   float red, float green, float blue, float alpha) {
-        buffer.vertex(matrix, (float) point.x, (float) point.y, (float) point.z)
-                .color(red, green, blue, alpha).endVertex();
+        buffer.addVertex(matrix, (float) point.x, (float) point.y, (float) point.z)
+                .setColor(red, green, blue, alpha);
     }
 
 }

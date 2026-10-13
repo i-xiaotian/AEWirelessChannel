@@ -7,7 +7,7 @@ import appeng.api.networking.IGridNode;
 import appeng.api.networking.IManagedGridNode;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.util.AECableType;
-import appeng.blockentity.grid.AENetworkBlockEntity;
+import appeng.blockentity.grid.AENetworkedBlockEntity;
 import com.xiaotian.ae.wirelesscable.AEWirelessChannel;
 import com.xiaotian.ae.wirelesscable.chunk.NetworkChunkLoading;
 import com.xiaotian.ae.wirelesscable.entity.ConnectionInfo;
@@ -37,7 +37,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
-public class WirelessBusBlockEntity extends AENetworkBlockEntity implements IActionHost {
+public class WirelessBusBlockEntity extends AENetworkedBlockEntity implements IActionHost {
     private static final String OUTPUT_BUS_ID = "wirelessOutputBusId";
     private static final String CONNECTIONS_TAG = "wirelessConnections";
     private static final Map<ServerLevel, Map<UUID, WeakReference<WirelessBusBlockEntity>>> LOADED_OUTPUTS = new WeakHashMap<>();
@@ -137,8 +137,8 @@ public class WirelessBusBlockEntity extends AENetworkBlockEntity implements IAct
     }
 
     @Override
-    public void loadTag(CompoundTag tag) {
-        super.loadTag(tag);
+    public void loadTag(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadTag(tag, registries);
         outputConnections.clear();
         if (isOutput()) {
             loadOutputData(tag);
@@ -149,8 +149,8 @@ public class WirelessBusBlockEntity extends AENetworkBlockEntity implements IAct
     }
 
     @Override
-    public void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    public void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         if (isOutput()) {
             tag.putUUID(OUTPUT_BUS_ID, outputBusId);
             ListTag links = new ListTag();

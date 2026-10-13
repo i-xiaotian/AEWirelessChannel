@@ -6,18 +6,18 @@ import com.xiaotian.ae.wirelesscable.entity.ConnectionInfo;
 import com.xiaotian.ae.wirelesscable.registry.ModContent;
 import com.xiaotian.ae.wirelesscable.tile.WirelessBusBlockEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.network.NetworkEvent;
-import net.neoforged.neoforge.network.NetworkRegistry;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.simple.SimpleChannel;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,17 +26,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 
 public final class WirelessLinkNetwork {
     private static final String PROTOCOL = "2";
     private static final int MAX_LINKS = 128;
-    private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
-            .named(new ResourceLocation(AEWirelessChannel.MOD_ID, "main"))
-            .networkProtocolVersion(() -> PROTOCOL)
-            .clientAcceptedVersions(PROTOCOL::equals)
-            .serverAcceptedVersions(PROTOCOL::equals)
-            .simpleChannel();
     private static final AtomicInteger REQUEST_IDS = new AtomicInteger();
     private static final Map<UUID, UUID> AUTHORIZED_OUTPUTS = new WeakHashMap<>();
     private static volatile int latestRequestId;
@@ -46,17 +39,14 @@ public final class WirelessLinkNetwork {
     private WirelessLinkNetwork() {
     }
 
-    public static void register() {
-        CHANNEL.messageBuilder(Request.class, 0)
-                .encoder(Request::encode)
-                .decoder(Request::decode)
-                .consumerMainThread(WirelessLinkNetwork::handleRequest)
-                .add();
-        CHANNEL.messageBuilder(Response.class, 1)
-                .encoder(Response::encode)
-                .decoder(Response::decode)
-                .consumerMainThread(WirelessLinkNetwork::handleResponse)
-                .add();
+    public static void register(RegisterPayloadHandlersEvent event) {
+        var registrar = event.registrar(PROTOCOL);
+        registrar.playToServer(Request.TYPE, Request.STREAM_CODEC,
+                (message, context) -> {
+                    if (context.player() instanceof ServerPlayer player) respond(player, message);
+                });
+        registrar.playToClient(Response.TYPE, Response.STREAM_CODEC,
+                (message, context) -> handleResponse(message));
     }
 
     public static void select(BlockPos pos, InteractionHand hand, UUID outputId) {
@@ -74,7 +64,7 @@ public final class WirelessLinkNetwork {
     private static void send(Selection current) {
         int requestId = REQUEST_IDS.incrementAndGet();
         latestRequestId = requestId;
-        CHANNEL.sendToServer(new Request(requestId, current.pos, current.hand, current.outputId));
+        PacketDistributor.sendToServer(new Request(requestId, current.pos, current.hand, current.outputId));
     }
 
     public static Selection getSelection() {
@@ -88,14 +78,6 @@ public final class WirelessLinkNetwork {
 
     public static void clearSnapshot() {
         snapshot = null;
-    }
-
-    private static void handleRequest(Request message, NetworkEvent.Context context) {
-        ServerPlayer player = context.getSender();
-        context.enqueueWork(() -> {
-            if (player != null) respond(player, message);
-        });
-        context.setPacketHandled(true);
     }
 
     private static void respond(ServerPlayer player, Request request) {
@@ -141,24 +123,22 @@ public final class WirelessLinkNetwork {
     }
 
     private static UUID getBoundOutputId(ItemStack stack) {
-        var bound = stack.getTagElement(WirelessBusBlock.OUTPUT_BOUND_TAG);
+        var bound = com.xiaotian.ae.wirelesscable.util.ItemConnectionData.get(
+                stack, WirelessBusBlock.OUTPUT_BOUND_TAG);
         return bound != null && bound.hasUUID(WirelessBusBlock.OUTPUT_ID_TAG)
                 ? bound.getUUID(WirelessBusBlock.OUTPUT_ID_TAG) : null;
     }
 
     private static void sendResponse(ServerPlayer player, Response response) {
-        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), response);
+        PacketDistributor.sendToPlayer(player, response);
     }
 
-    private static void handleResponse(Response response, NetworkEvent.Context context) {
-        context.enqueueWork(() -> {
-            if (response.id != latestRequestId) return;
-            Selection current = selection;
-            if (current != null && response.outputId != null) current.outputId = response.outputId;
-            snapshot = response.outputPos == null ? null
-                    : new Snapshot(response.dimension, response.outputPos, response.links);
-        });
-        context.setPacketHandled(true);
+    private static void handleResponse(Response response) {
+        if (response.id != latestRequestId) return;
+        Selection current = selection;
+        if (current != null && response.outputId != null) current.outputId = response.outputId;
+        snapshot = response.outputPos == null ? null
+                : new Snapshot(response.dimension, response.outputPos, response.links);
     }
 
     public static final class Link {
@@ -195,7 +175,10 @@ public final class WirelessLinkNetwork {
         }
     }
 
-    private static final class Request {
+    private static final class Request implements CustomPacketPayload {
+        private static final Type<Request> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(AEWirelessChannel.MOD_ID, "request"));
+        private static final StreamCodec<RegistryFriendlyByteBuf, Request> STREAM_CODEC =
+                StreamCodec.of(Request::encode, Request::decode);
         private final int id;
         private final BlockPos pos;
         private final InteractionHand hand;
@@ -208,15 +191,20 @@ public final class WirelessLinkNetwork {
             this.outputId = outputId;
         }
 
-        private void encode(FriendlyByteBuf buffer) {
-            buffer.writeInt(id);
-            buffer.writeBlockPos(pos);
-            buffer.writeByte(hand.ordinal());
-            buffer.writeBoolean(outputId != null);
-            if (outputId != null) buffer.writeUUID(outputId);
+        @Override
+        public Type<Request> type() {
+            return TYPE;
         }
 
-        private static Request decode(FriendlyByteBuf buffer) {
+        private static void encode(RegistryFriendlyByteBuf buffer, Request message) {
+            buffer.writeInt(message.id);
+            buffer.writeBlockPos(message.pos);
+            buffer.writeByte(message.hand.ordinal());
+            buffer.writeBoolean(message.outputId != null);
+            if (message.outputId != null) buffer.writeUUID(message.outputId);
+        }
+
+        private static Request decode(RegistryFriendlyByteBuf buffer) {
             int id = buffer.readInt();
             BlockPos pos = buffer.readBlockPos();
             int handIndex = buffer.readUnsignedByte();
@@ -227,7 +215,10 @@ public final class WirelessLinkNetwork {
         }
     }
 
-    private static final class Response {
+    private static final class Response implements CustomPacketPayload {
+        private static final Type<Response> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(AEWirelessChannel.MOD_ID, "response"));
+        private static final StreamCodec<RegistryFriendlyByteBuf, Response> STREAM_CODEC =
+                StreamCodec.of(Response::encode, Response::decode);
         private final int id;
         private final ResourceLocation dimension;
         private final UUID outputId;
@@ -242,22 +233,27 @@ public final class WirelessLinkNetwork {
             this.links = List.copyOf(links);
         }
 
-        private void encode(FriendlyByteBuf buffer) {
-            buffer.writeInt(id);
-            buffer.writeResourceLocation(dimension);
-            buffer.writeBoolean(outputPos != null);
-            if (outputPos != null) buffer.writeBlockPos(outputPos);
-            buffer.writeBoolean(outputId != null);
-            if (outputId != null) buffer.writeUUID(outputId);
-            int count = Math.min(links.size(), MAX_LINKS);
+        @Override
+        public Type<Response> type() {
+            return TYPE;
+        }
+
+        private static void encode(RegistryFriendlyByteBuf buffer, Response message) {
+            buffer.writeInt(message.id);
+            buffer.writeResourceLocation(message.dimension);
+            buffer.writeBoolean(message.outputPos != null);
+            if (message.outputPos != null) buffer.writeBlockPos(message.outputPos);
+            buffer.writeBoolean(message.outputId != null);
+            if (message.outputId != null) buffer.writeUUID(message.outputId);
+            int count = Math.min(message.links.size(), MAX_LINKS);
             buffer.writeVarInt(count);
             for (int i = 0; i < count; i++) {
-                buffer.writeBlockPos(links.get(i).output);
-                buffer.writeBlockPos(links.get(i).input);
+                buffer.writeBlockPos(message.links.get(i).output);
+                buffer.writeBlockPos(message.links.get(i).input);
             }
         }
 
-        private static Response decode(FriendlyByteBuf buffer) {
+        private static Response decode(RegistryFriendlyByteBuf buffer) {
             int id = buffer.readInt();
             ResourceLocation dimension = buffer.readResourceLocation();
             BlockPos outputPos = buffer.readBoolean() ? buffer.readBlockPos() : null;

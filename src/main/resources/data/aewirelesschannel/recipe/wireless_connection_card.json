@@ -4,5 +4,5 @@
     { "item": "ae2:wireless_receiver" },
     { "item": "ae2:basic_card" }
   ],
-  "result": { "item": "aewirelesschannel:item_wireless_key_card" }
+  "result": { "id": "aewirelesschannel:item_wireless_key_card" }
 }
