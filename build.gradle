@@ -71,3 +71,7 @@ processResources {
 }
 
 sourceJar.enabled = false
+
+// ForgeGradle 2.3 attaches reobfJar to assemble, but not to jar itself.
+// A jar built directly must also use Minecraft's runtime (SRG) names.
+jar.finalizedBy 'reobfJar'

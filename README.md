@@ -26,6 +26,22 @@
     Blocks emit light, making them easy to locate in dark environments.
 
 
+## Building for Minecraft 1.12.2
+
+Use JDK 8 and the included Gradle wrapper:
+
+```powershell
+.\gradlew.bat build
+```
+
+Install `build/libs/AEWirelessChannel-1.1.0-release.jar` in the client's or
+server's `mods` folder. Replace the previous copy of the mod.
+
+Forge's `reobfJar` step converts development method names to Minecraft's runtime
+names. The `jar` task also runs this step automatically. Exporting a JAR directly
+from the IDE bypasses it and can cause startup errors such as
+`NoSuchMethodError: PropertyDirection.create`.
+
 ## 🛠️ How to Use
 
 1.  Craft and place an **Output Bus** and one or more **Input Buses**.
